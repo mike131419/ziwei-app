@@ -44,6 +44,12 @@ input,select{font:inherit;padding:8px 10px;border:1px solid var(--rule);border-r
 #name{width:8em} #year{width:6em}
 button{font:inherit;font-weight:700;padding:9px 22px;background:var(--ji);color:var(--on-chip);border:0;border-radius:3px;cursor:pointer;letter-spacing:.2em}
 button:hover{filter:brightness(1.08)} :focus-visible{outline:2px solid var(--domain);outline-offset:2px}
+.dsel{display:flex;gap:6px}
+.leap{display:flex;gap:6px;align-items:center;padding-bottom:8px}
+.leap[hidden]{display:none}
+.stale{opacity:.25}
+.flash{animation:flash .6s ease-out}
+@keyframes flash{from{background:var(--gold)}to{background:transparent}}
 .note{font-size:.8rem;color:var(--muted);flex-basis:100%}
 .err{color:var(--ji);font-weight:500}
 h2{font-family:var(--display);font-size:1.25rem;margin:0 0 10px;display:flex;gap:12px;align-items:baseline}
@@ -96,11 +102,13 @@ footer{font-size:.8rem;color:var(--muted);max-width:65ch}
   <form id="f">
     <div class="field"><label for="name">姓名</label><input id="name" value="秀玲"></div>
     <div class="field"><label for="gender">性别</label><select id="gender"><option>女</option><option>男</option></select></div>
-    <div class="field"><label for="date">阳历生日</label><input id="date" type="date" value="1985-11-23"></div>
+    <div class="field"><label for="cal">历法</label><select id="cal"><option value="solar">阳历</option><option value="lunar">农历</option></select></div>
+    <div class="field"><label for="by">出生日期</label><div class="dsel"><select id="by" aria-label="出生年"></select><select id="bm" aria-label="出生月"></select><select id="bd" aria-label="出生日"></select></div></div>
+    <label class="leap" id="leapwrap" hidden><input type="checkbox" id="leap"> 闰月</label>
     <div class="field"><label for="hour">出生时辰</label><select id="hour"></select></div>
-    <div class="field"><label for="year">流年</label><input id="year" type="number" min="1900" max="2100" value="2021"></div>
+    <div class="field"><label for="year">流年</label><select id="year"></select></div>
     <button type="submit">排盘</button>
-    <div class="note" id="msg">示例资料：秀玲 1985年11月23日 戌时。</div>
+    <div class="note" id="msg">示例资料：秀玲 1985年11月23日 戌时。更改任何资料，命盘会自动更新。</div>
   </form>
 
   <section>
@@ -132,24 +140,48 @@ const POS = {巳:[1,1],午:[1,2],未:[1,3],申:[1,4],辰:[2,1],酉:[2,4],卯:[3,
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const lines = arr => arr.map(x => `<span>${esc(x)}</span>`).join('');
 
-const FIELDS = ['name','gender','date','hour','year'];
-try { const saved = JSON.parse(localStorage.getItem('zw-last') || 'null');
-  if(saved) FIELDS.forEach(k => { if(saved[k] != null) document.getElementById(k).value = saved[k]; }); } catch(e){}
+const $ = id => document.getElementById(id);
+const opt = (sel, v, t) => { const o = document.createElement('option'); o.value = v; o.textContent = t; sel.appendChild(o); };
+const LUNAR_M = ['正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','冬月','腊月'];
+const LUNAR_D = ['初一','初二','初三','初四','初五','初六','初七','初八','初九','初十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+const THIS_YEAR = new Date().getFullYear();
+for(let y = THIS_YEAR; y >= 1920; y--) opt($('by'), y, y + '年');
+for(let y = THIS_YEAR + 10; y >= 1950; y--) opt($('year'), y, y + '年');
+function fillMD(){
+  const lunar = $('cal').value === 'lunar', m = $('bm').value, d = $('bd').value;
+  $('bm').innerHTML = ''; $('bd').innerHTML = '';
+  for(let i = 1; i <= 12; i++) opt($('bm'), i, lunar ? LUNAR_M[i - 1] : i + '月');
+  for(let i = 1; i <= (lunar ? 30 : 31); i++) opt($('bd'), i, lunar ? LUNAR_D[i - 1] : i + '日');
+  if(m) $('bm').value = m;
+  if(d) $('bd').value = Math.min(+d, lunar ? 30 : 31);
+  $('leapwrap').hidden = !lunar;
+}
+fillMD();
+$('by').value = 1985; $('bm').value = 11; $('bd').value = 23; $('year').value = THIS_YEAR;
+const FIELDS = ['name','gender','cal','by','bm','bd','leap','hour','year'];
+const getV = k => $(k).type === 'checkbox' ? $(k).checked : $(k).value;
+try { const saved = JSON.parse(localStorage.getItem('zw-last2') || 'null');
+  if(saved){
+    if(saved.cal){ $('cal').value = saved.cal; fillMD(); }
+    FIELDS.forEach(k => { if(saved[k] == null) return; if($(k).type === 'checkbox') $(k).checked = saved[k]; else $(k).value = saved[k]; });
+  } } catch(e){}
 function render(){
   const msg = document.getElementById('msg');
   const name = document.getElementById('name').value.trim() || '无名';
   const gender = document.getElementById('gender').value;
-  const date = document.getElementById('date').value;
+  const lunar = $('cal').value === 'lunar';
+  const y = +$('by').value, m = +$('bm').value, d = +$('bd').value;
+  const date = `${y}-${m}-${d}`;
   const ti = +hourSel.value;
   const year = +document.getElementById('year').value;
-  if(!date){ msg.innerHTML = '<span class="err">请填写阳历生日。</span>'; return; }
-  if(!(year >= 1901 && year <= 2099)){ msg.innerHTML = '<span class="err">流年请填写 1901 至 2099 之间的年份。</span>'; return; }
-  try { localStorage.setItem('zw-last', JSON.stringify(Object.fromEntries(FIELDS.map(k => [k, document.getElementById(k).value])))); } catch(e){}
+  if(!lunar){ const t = new Date(y, m - 1, d); if(t.getMonth() !== m - 1){ msg.innerHTML = `<span class="err">${y}年${m}月没有${d}日，请重新选择日期。</span>`; return false; } }
+  try { localStorage.setItem('zw-last2', JSON.stringify(Object.fromEntries(FIELDS.map(k => [k, getV(k)])))); } catch(e){}
   let a;
-  try { a = iztro.astro.bySolar(date, ti, gender, true, 'zh-CN'); }
-  catch(e){ msg.innerHTML = '<span class="err">排盘失败，请检查生日格式。</span>'; return; }
-  msg.textContent = `农历 ${a.lunarDate} · 八字 ${a.chineseDate}`;
-  const [y, m, d] = date.split('-').map(Number);
+  try { a = lunar ? iztro.astro.byLunar(date, ti, gender, $('leap').checked, true, 'zh-CN') : iztro.astro.bySolar(date, ti, gender, true, 'zh-CN'); }
+  catch(e){ a = null; }
+  if(!a || !a.palaces || a.palaces.length !== 12){ msg.innerHTML = '<span class="err">这个日期无法排盘，请检查日期（农历小月没有三十，或该年没有这个闰月）。</span>'; return false; }
+  msg.textContent = lunar ? `阳历 ${a.solarDate} · 八字 ${a.chineseDate}` : `农历 ${a.lunarDate} · 八字 ${a.chineseDate}`;
+  const sy = lunar ? `农历${y}年` : `${y}年`, smd = lunar ? `${$('leap').checked ? '闰' : ''}${LUNAR_M[m - 1]}${LUNAR_D[d - 1]}` : `${m}月${d}日`;
   document.getElementById('sub').textContent = `${a.fiveElementsClass} · 命主${a.soul} · 身主${a.body}`;
 
   // 本命盘
@@ -165,7 +197,7 @@ function render(){
   }
   const traits = selfTraits(a);
   html += `<div class="center">
-    <div class="idbox">${esc(name)}<br>${y}年<br>${m}月${d}日<br>${SHI[ti]}时</div>
+    <div class="idbox">${esc(name)}<br>${sy}<br>${smd}<br>${SHI[ti]}时</div>
     <div class="col">${lines(traits.slice(0, 6))}</div>
     <div class="col">${lines(traits.slice(6, 12))}</div>
     <div class="col"><span class="advh">建议</span>${lines(advice(a))}</div></div>`;
@@ -189,7 +221,11 @@ function render(){
     <div class="adv">凶月来临时，需要注意，做事情多计划<br>不要冲动，思考全面后才去做。<br>不要意气用事，不要随便投资<br>多做慈善，可以有宗教信仰<br>保持乐观，找自己喜欢的东西研究<br>也不要担心，都会过去的，多一些正能量</div></div>`;
   document.getElementById('yboard').innerHTML = yh;
 }
-document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); render(); });
+function update(){ const ok = render() !== false; for(const id of ['board','yboard']){ const el = $(id); el.classList.toggle('stale', !ok); if(!ok) continue; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); } }
+$('f').addEventListener('submit', e => { e.preventDefault(); update(); $('board').scrollIntoView({behavior: 'smooth', block: 'start'}); });
+$('cal').addEventListener('change', fillMD);
+$('f').addEventListener('change', update);
+let nameTimer; $('name').addEventListener('input', () => { clearTimeout(nameTimer); nameTimer = setTimeout(update, 400); });
 if(window.iztro && window.Lunar) render();
 else document.getElementById('msg').innerHTML = '<span class="err">排盘程序载入失败，请重新打开 App。</span>';
 </script>
