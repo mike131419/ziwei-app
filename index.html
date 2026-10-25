@@ -48,6 +48,8 @@ button:hover{filter:brightness(1.08)} :focus-visible{outline:2px solid var(--dom
 .leap{display:flex;gap:6px;align-items:center;padding-bottom:8px}
 .leap[hidden]{display:none}
 .mp{font-size:.78em;color:var(--muted);margin-top:4px}
+.ynotes{margin-top:12px;padding:12px 14px;background:var(--soft);border-radius:4px;display:grid;gap:4px;max-width:65ch}
+.ynotes h3{margin:0 0 4px;font-family:var(--display);font-size:1rem;color:var(--xiong)}
 .stale{opacity:.25}
 .flash{animation:flash .6s ease-out}
 @keyframes flash{from{background:var(--gold)}to{background:transparent}}
@@ -122,6 +124,7 @@ footer{font-size:.8rem;color:var(--muted);max-width:65ch}
   <section>
     <h2 id="yh">流年十二个月</h2>
     <div class="scroll"><div class="board" id="yboard"></div></div>
+    <div class="ynotes" id="ynotes"></div>
   </section>
 
   <footer>排盘由开源库 iztro 计算，农历换算用 lunar-javascript。宫位解读与吉凶规则写在页面脚本最上方的资料库，可替换成师傅的版本。仅供参考娱乐。</footer>
@@ -195,15 +198,15 @@ function render(){
     const nm = p.name === '命宫' ? '命宫' : p.name + '宫';
     html += `<div class="cell" style="grid-row:${r};grid-column:${c}">
       <div class="stars">${stars}</div>
-      <div class="reads">${lines(palaceText(p))}${p.isBodyPalace ? '<span class="tagbody">身宫</span>' : ''}</div>
+      <div class="reads">${lines(palaceText(p, a.palaces))}${p.isBodyPalace ? '<span class="tagbody">身宫</span>' : ''}</div>
       <div class="pname">${nm}</div><div class="dom">${esc(DOMAIN[p.name] || '本人')}</div></div>`;
   }
   const traits = selfTraits(a);
   html += `<div class="center">
     <div class="idbox">${esc(name)}<br>${sy}<br>${smd}<br>${SHI[ti]}时</div>
-    <div class="col">${lines(traits.slice(0, 6))}</div>
-    <div class="col">${lines(traits.slice(6, 12))}</div>
-    <div class="col"><span class="advh">建议</span>${lines(advice(a))}</div></div>`;
+    <div class="col">${lines(traits.slice(0, 10))}</div>
+    <div class="col">${lines(traits.slice(10, 16))}</div>
+    <div class="col">${lines(traits.slice(16, 20))}<span class="advh">建议</span>${lines(advice(a))}</div></div>`;
   document.getElementById('board').innerHTML = html;
   document.getElementById('side').innerHTML =
     `<span class="chip">八字<b>${esc(a.chineseDate)}</b></span><span class="chip">生肖<b>${esc(a.zodiac)}</b></span><span class="chip">星座<b>${esc(a.sign)}</b></span>`;
@@ -216,13 +219,14 @@ function render(){
     const [r, c] = POS[MONTH_BRANCH[mo.m - 1]];
     yh += `<div class="mcell ${mo.good ? 'good' : 'bad'}" style="grid-row:${r};grid-column:${c}">
       <div class="mhead"><span class="mn">${CN_MONTH[mo.m - 1]}</span><span class="gl">${mo.good ? '吉月' : '凶月'}</span></div>
-      <div class="mlines">${lines(mo.lines)}<span class="mp">流月落${esc(mo.palace === '命宫' ? '命宫' : mo.palace + '宫')}</span></div></div>`;
+      <div class="mlines">${lines(mo.lines)}</div></div>`;
   }
   yh += `<div class="ycenter">
     <div class="who">${esc(name)}<br>${year}运势</div><div class="start">农历华人新年一月一日开始</div>
     <div class="flow">流年大运<br>十二个月</div><div class="summary">${esc(yr.overall)}<br>${esc(yr.caution)}</div>
-    <div class="adv">${yr.advice.map(esc).join('<br>')}</div></div>`;
+    <div class="adv">凶月来临时，需要注意，做事情多计划<br>不要冲动，思考全面后才去做。<br>不要意气用事，不要投资<br>做更多慈善，一定要有宗教信仰<br>要保持乐观，找自己喜欢的东西研究<br>也不要担心，都会过去的，多一些正能量</div></div>`;
   document.getElementById('yboard').innerHTML = yh;
+  document.getElementById('ynotes').innerHTML = `<h3>流年重点</h3>${lines(yr.advice)}`;
 }
 function update(){ const ok = render() !== false; for(const id of ['board','yboard']){ const el = $(id); el.classList.toggle('stale', !ok); if(!ok) continue; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); } }
 $('f').addEventListener('submit', e => { e.preventDefault(); update(); $('board').scrollIntoView({behavior: 'smooth', block: 'start'}); });
