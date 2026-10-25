@@ -82,19 +82,36 @@ function palaceText(p){
   return uniq(out).slice(0, 5);
 }
 
-function monthText(p, good, flow){
-  const cat = CAT[p.name], out = [];
-  const names = [...p.majorStars, ...p.minorStars].map(x => x.name);
-  if(flow){ if(names.includes(flow[3])) out.push('想很多'); if(flow.slice(0,3).some(n => names.includes(n))) out.push('贵人相助'); }
-  out.push(...((!good && MONTH_CAT_BAD[cat]) || MONTH_CAT[cat] || []));
+// 流月文字：宫位主题 + 星曜 + 流月四化 + 结语，按年份与月份轮换用词
+const MONTH_THEME = {
+  self:{good:['精神好，做事有冲劲','自信心强，适合表现自己','个人运势顺，心想事成'],bad:['注意自己的脾气','情绪起伏，不要冲动','想太多，容易钻牛角尖']},
+  kin:{good:['家人和睦，互相帮忙','长辈照顾，得到支持','亲情温暖，适合聚会'],bad:['和家人容易有口角','家人有事要操心','少管闲事，避免误会']},
+  love:{good:['感情甜蜜，伴侣支持','适合约会，增进感情','另一半带来好消息'],bad:['感情容易有摩擦','多体谅伴侣，少争吵','聚少离多，多沟通']},
+  money:{good:['赚到钱，收入增加','正财稳定，偏财也有','适合谈价钱和收账'],bad:['开销大，守住钱包','不要投资，不要借钱给人','财进财出，存不住钱']},
+  health:{good:['身体状况好','精神饱满，适合运动','小病小痛很快好'],bad:['注意健康，按时休息','容易疲劳，不要熬夜','注意饮食和肠胃']},
+  travel:{good:['出外有利，适合出差旅行','外地有贵人','到外面走动会有机会'],bad:['出外注意安全','出行容易有延误','人际关系差，少应酬']},
+  social:{good:['朋友帮忙，贵人相助','合作顺利，适合谈生意','人缘好，容易结交新朋友'],bad:['注意小人','合作容易有纠纷','不要替人担保']},
+  career:{good:['事业顺利，工作能力强','工作上有表现机会','适合争取升职加薪'],bad:['工作压力大，要求高','工作上容易有是非','做事多检查，避免出错']},
+  house:{good:['家宅平安，适合装修搬家','房产运好，可以看房','在家心情舒服'],bad:['注意合约合同','家里事情多，要操心','不宜买卖房产']},
+  late:{good:['心情愉快，贪玩好动','有闲情，享受生活','精神上很满足'],bad:['想很多，容易悲观','心情烦闷，多出去走走','不要太纠结']},
+};
+const FLOW_LINE = [['流月化禄：有财进','流月化禄：好事发生'],['流月化权：掌握主动','流月化权：说话有份量'],['流月化科：贵人提携','流月化科：名声好'],['流月化忌：心情起伏','流月化忌：凡事小心']];
+const CLOSE = {good:['逢凶化吉','把握机会','适合行动'],bad:['凡事多计划','不要冲动','低调做事']};
+const pick = (arr, seed) => arr[((seed % arr.length) + arr.length) % arr.length];
+
+function monthText(p, good, flow, seed = 0){
+  const cat = CAT[p.name], key = good ? 'good' : 'bad', out = [];
+  out.push(pick(MONTH_THEME[cat][key], seed));
+  // 最有代表性的星：凶月优先煞星/落陷，吉月优先主星
   let list = starsOf(p);
-  if(!good) list = [...list].sort((a, b) => (UNLUCKY.includes(b.name) || b.brightness === '陷') - (UNLUCKY.includes(a.name) || a.brightness === '陷'));
-  for(const st of list){
-    out.push(...(STAR[st.name].month || []));
-    if(st.mutagen) out.push(MUTAGEN[st.mutagen].month);
+  const harsh = st => UNLUCKY.includes(st.name) || st.brightness === '陷' || st.mutagen === '忌';
+  list = [...list].sort((a, b) => good ? (harsh(a) - harsh(b)) : (harsh(b) - harsh(a)));
+  for(const st of list.slice(0, 2)){ const ph = STAR[st.name].month; if(ph) out.push(pick(ph, seed + out.length)); }
+  if(flow){
+    const names = [...p.majorStars, ...p.minorStars].map(x => x.name);
+    flow.forEach((n, i) => { if(names.includes(n)) out.push(pick(FLOW_LINE[i], seed)); });
   }
-  if(good && out.length < 3) out.push('逢凶化吉');
-  if(!good) out.push('凡事多计划');
+  out.push(pick(CLOSE[key], seed));
   return uniq(out).slice(0, 4);
 }
 
@@ -133,7 +150,7 @@ function yearReading(astrolabe, year, timeIndex, Lunar){
     const p = astrolabe.palaces[h.monthly.index];
     const flow = h.monthly.mutagen;
     const score = palaceScore(p, flow), good = score >= 0;
-    months.push({m, good, score, branch: p.earthlyBranch, palace: p.name, lines: monthText(p, good, flow)});
+    months.push({m, good, score, branch: p.earthlyBranch, palace: p.name, lines: monthText(p, good, flow, year * 8 + m * 7 + h.monthly.index * 5)});
   }
   const bad = months.filter(x => !x.good).length;
   const mid = Lunar.fromYmd(year, 6, 15).getSolar();
