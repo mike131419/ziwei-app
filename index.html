@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>紫微命盘运势</title>
+<meta name="description" content="输入生日与时辰，自动排出紫微斗数命盘与流年十二个月吉凶。">
+<meta name="theme-color" content="#d6200f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="紫微命盘">
+<style>
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0}
+/* Layout: spreadsheet-style 4×4 命盘, twelve palaces ring the center, same ring reused for 流月 */
+:root{
+  --paper:#fbfaf7; --ink:#1d1a22; --rule:#1d1a22; --soft:#ece8ef; --muted:#6c6475;
+  --ji:#d6200f; --xiong:#7b22a8; --star:#7b22a8; --palace:#d6200f; --domain:#2f6ea8;
+  --good-text:#9b6a12; --bad-text:#2f6ea8; --gold:#f6c96b; --on-chip:#ffffff;
+  --display:"Noto Serif SC","Songti SC",serif; --body:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#17141b; --ink:#ece6f2; --rule:#8d8398; --soft:#26212c; --muted:#a69daf;
+  --ji:#ff5a45; --xiong:#b56be0; --star:#c98ef0; --palace:#ff6b57; --domain:#7fb2e6;
+  --good-text:#e6b456; --bad-text:#86b8ea; --gold:#8a6420; --on-chip:#ffffff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#17141b; --ink:#ece6f2; --rule:#8d8398; --soft:#26212c; --muted:#a69daf;
+  --ji:#ff5a45; --xiong:#b56be0; --star:#c98ef0; --palace:#ff6b57; --domain:#7fb2e6;
+  --good-text:#e6b456; --bad-text:#86b8ea; --gold:#8a6420; --on-chip:#ffffff; color-scheme:dark}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(48px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:28px}
+.wrap>*{min-width:0}
+header h1{font-family:var(--display);font-weight:800;font-size:1.9rem;margin:0;letter-spacing:.04em;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted)}
+form{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:end;padding:16px;background:var(--soft);border-radius:4px}
+.field{display:grid;gap:4px;min-width:0}
+.field label{font-size:.8rem;color:var(--muted);letter-spacing:.06em}
+input,select{font:inherit;padding:8px 10px;border:1px solid var(--rule);border-radius:3px;background:var(--paper);color:var(--ink);min-width:0}
+#name{width:8em} #year{width:6em}
+button{font:inherit;font-weight:700;padding:9px 22px;background:var(--ji);color:var(--on-chip);border:0;border-radius:3px;cursor:pointer;letter-spacing:.2em}
+button:hover{filter:brightness(1.08)} :focus-visible{outline:2px solid var(--domain);outline-offset:2px}
+.note{font-size:.8rem;color:var(--muted);flex-basis:100%}
+.err{color:var(--ji);font-weight:500}
+h2{font-family:var(--display);font-size:1.25rem;margin:0 0 10px;display:flex;gap:12px;align-items:baseline}
+h2 small{font-family:var(--body);font-weight:400;font-size:.85rem;color:var(--muted)}
+.scroll{overflow-x:auto;padding-bottom:4px}
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(4,auto);border:2.5px solid var(--rule);min-width:760px;background:var(--paper)}
+.cell{border:1.5px solid var(--rule);padding:6px 8px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr auto;column-gap:6px;min-height:150px;font-size:1.02rem}
+.stars{color:var(--star);display:grid;align-content:start}
+.stars .xian{font-size:.85em}
+.reads{display:grid;align-content:start}
+.pname{color:var(--palace);font-weight:700;align-self:end}
+.dom{color:var(--domain);align-self:end}
+.tagbody{display:inline-block;color:var(--domain);font-size:.85rem}
+.center{grid-column:2/4;grid-row:2/4;border:1.5px solid var(--rule);display:grid;grid-template-columns:1fr 1fr 1fr 1fr;font-size:1rem}
+.idbox{background:var(--ji);color:var(--on-chip);padding:8px;font-weight:500;line-height:1.7}
+.col{padding:8px;display:grid;align-content:start}
+.advh{background:var(--xiong);color:var(--on-chip);padding:0 6px;justify-self:start}
+.side{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:.92rem}
+.chip{background:var(--gold);color:var(--ink);padding:6px 12px;border-radius:2px}
+.chip b{margin-left:6px;font-variant-numeric:tabular-nums}
+/* year board */
+.mcell{border:1.5px solid var(--rule);display:grid;grid-template-rows:auto 1fr;min-height:150px;font-size:1.02rem}
+.mhead{display:grid;grid-template-columns:1fr 1fr}
+.mhead span{padding:2px 8px}
+.mhead .mn{color:var(--on-chip);font-weight:700}
+.good .mn{background:var(--ji)} .bad .mn{background:var(--xiong)}
+.good .gl{color:var(--ji)} .bad .gl{color:var(--xiong)}
+.mlines{padding:4px 8px;display:grid;align-content:start}
+.good .mlines{color:var(--good-text)} .bad .mlines{color:var(--bad-text)}
+.ycenter{grid-column:2/4;grid-row:2/4;border:1.5px solid var(--rule);display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto 1fr;font-size:1rem}
+.ycenter .who{background:var(--ji);color:var(--on-chip);padding:6px 10px;line-height:1.7}
+.ycenter .start{color:var(--ji);padding:6px 10px}
+.ycenter .flow{background:var(--gold);color:var(--paper);padding:6px 10px;line-height:1.7;color:var(--ink)}
+.ycenter .summary{background:var(--ji);color:var(--on-chip);padding:6px 10px;line-height:1.7}
+.ycenter .adv{grid-column:1/3;background:var(--xiong);color:var(--on-chip);padding:8px 10px;line-height:1.75}
+@media (max-width:700px){.board{min-width:600px}.cell,.mcell{font-size:.82rem;min-height:120px;padding:4px 5px}.center,.ycenter{font-size:.8rem}header h1{font-size:1.5rem}}
+.hint{display:none;font-size:.8rem;color:var(--muted);margin:0 0 6px}
+@media (max-width:700px){.hint{display:block}}
+footer{font-size:.8rem;color:var(--muted);max-width:65ch}
+@media (prefers-reduced-motion:no-preference){.board{animation:fade .35s ease-out}@keyframes fade{from{opacity:.4}to{opacity:1}}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>紫微命盘 · 流年运势</h1>
+    <p>输入生日与时辰，自动排出十二宫命盘与流年十二个月吉凶。</p>
+  </header>
+
+  <form id="f">
+    <div class="field"><label for="name">姓名</label><input id="name" value="秀玲"></div>
+    <div class="field"><label for="gender">性别</label><select id="gender"><option>女</option><option>男</option></select></div>
+    <div class="field"><label for="date">阳历生日</label><input id="date" type="date" value="1985-11-23"></div>
+    <div class="field"><label for="hour">出生时辰</label><select id="hour"></select></div>
+    <div class="field"><label for="year">流年</label><input id="year" type="number" min="1900" max="2100" value="2021"></div>
+    <button type="submit">排盘</button>
+    <div class="note" id="msg">示例资料：秀玲 1985年11月23日 戌时。</div>
+  </form>
+
+  <section>
+    <h2>本命十二宫 <small id="sub"></small></h2>
+    <p class="hint">← 命盘可左右滑动查看 →</p>
+    <div class="scroll"><div class="board" id="board"></div></div>
+    <div class="side" id="side"></div>
+  </section>
+
+  <section>
+    <h2 id="yh">流年十二个月</h2>
+    <div class="scroll"><div class="board" id="yboard"></div></div>
+  </section>
+
+  <footer>排盘由开源库 iztro 计算，农历换算用 lunar-javascript。宫位解读与吉凶规则写在页面脚本最上方的资料库，可替换成师傅的版本。仅供参考娱乐。</footer>
+</div>
+
+<script src="lib/iztro.min.js"></script>
+<script src="lib/lunar.js"></script>
+<script src="core.js"></script>
+<script>
+const HOURS = ['早子 23:00-00:59','丑 01:00-02:59','寅 03:00-04:59','卯 05:00-06:59','辰 07:00-08:59','巳 09:00-10:59','午 11:00-12:59','未 13:00-14:59','申 15:00-16:59','酉 17:00-18:59','戌 19:00-20:59','亥 21:00-22:59','晚子 23:00-23:59'];
+const hourSel = document.getElementById('hour');
+HOURS.forEach((h, i) => { const o = document.createElement('option'); o.value = i; o.textContent = h; if(i === 10) o.selected = true; hourSel.appendChild(o); });
+const SHI = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥','子'];
+const CN_MONTH = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+// 地支 → 格子位置 (row, col)
+const POS = {巳:[1,1],午:[1,2],未:[1,3],申:[1,4],辰:[2,1],酉:[2,4],卯:[3,1],戌:[3,4],寅:[4,1],丑:[4,2],子:[4,3],亥:[4,4]};
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const lines = arr => arr.map(x => `<span>${esc(x)}</span>`).join('');
+
+const FIELDS = ['name','gender','date','hour','year'];
+try { const saved = JSON.parse(localStorage.getItem('zw-last') || 'null');
+  if(saved) FIELDS.forEach(k => { if(saved[k] != null) document.getElementById(k).value = saved[k]; }); } catch(e){}
+function render(){
+  const msg = document.getElementById('msg');
+  const name = document.getElementById('name').value.trim() || '无名';
+  const gender = document.getElementById('gender').value;
+  const date = document.getElementById('date').value;
+  const ti = +hourSel.value;
+  const year = +document.getElementById('year').value;
+  if(!date){ msg.innerHTML = '<span class="err">请填写阳历生日。</span>'; return; }
+  if(!(year >= 1901 && year <= 2099)){ msg.innerHTML = '<span class="err">流年请填写 1901 至 2099 之间的年份。</span>'; return; }
+  try { localStorage.setItem('zw-last', JSON.stringify(Object.fromEntries(FIELDS.map(k => [k, document.getElementById(k).value])))); } catch(e){}
+  let a;
+  try { a = iztro.astro.bySolar(date, ti, gender, true, 'zh-CN'); }
+  catch(e){ msg.innerHTML = '<span class="err">排盘失败，请检查生日格式。</span>'; return; }
+  msg.textContent = `农历 ${a.lunarDate} · 八字 ${a.chineseDate}`;
+  const [y, m, d] = date.split('-').map(Number);
+  document.getElementById('sub').textContent = `${a.fiveElementsClass} · 命主${a.soul} · 身主${a.body}`;
+
+  // 本命盘
+  let html = '';
+  for(const p of a.palaces){
+    const [r, c] = POS[p.earthlyBranch];
+    const stars = [...p.majorStars, ...p.minorStars].map(s => `<span>${esc(s.name)}${s.mutagen ? '化' + esc(s.mutagen) : ''}${s.brightness === '陷' ? '<span class="xian">陷</span>' : ''}</span>`).join('');
+    const nm = p.name === '命宫' ? '命宫' : p.name + '宫';
+    html += `<div class="cell" style="grid-row:${r};grid-column:${c}">
+      <div class="stars">${stars}</div>
+      <div class="reads">${lines(palaceText(p))}${p.isBodyPalace ? '<span class="tagbody">身宫</span>' : ''}</div>
+      <div class="pname">${nm}</div><div class="dom">${esc(DOMAIN[p.name] || '本人')}</div></div>`;
+  }
+  const traits = selfTraits(a);
+  html += `<div class="center">
+    <div class="idbox">${esc(name)}<br>${y}年<br>${m}月${d}日<br>${SHI[ti]}时</div>
+    <div class="col">${lines(traits.slice(0, 6))}</div>
+    <div class="col">${lines(traits.slice(6, 12))}</div>
+    <div class="col"><span class="advh">建议</span>${lines(advice(a))}</div></div>`;
+  document.getElementById('board').innerHTML = html;
+  document.getElementById('side').innerHTML =
+    `<span class="chip">八字<b>${esc(a.chineseDate)}</b></span><span class="chip">生肖<b>${esc(a.zodiac)}</b></span><span class="chip">星座<b>${esc(a.sign)}</b></span>`;
+
+  // 流年
+  const yr = yearReading(a, year, ti, Lunar);
+  document.getElementById('yh').innerHTML = `${year} 流年十二个月 <small>${esc(yr.yearGanZhi)}年 · 凶月 ${yr.bad} 个</small>`;
+  let yh = '';
+  for(const mo of yr.months){
+    const [r, c] = POS[mo.branch];
+    yh += `<div class="mcell ${mo.good ? 'good' : 'bad'}" style="grid-row:${r};grid-column:${c}">
+      <div class="mhead"><span class="mn">${CN_MONTH[mo.m - 1]}</span><span class="gl">${mo.good ? '吉月' : '凶月'}</span></div>
+      <div class="mlines">${lines(mo.lines)}</div></div>`;
+  }
+  yh += `<div class="ycenter">
+    <div class="who">${esc(name)}<br>${year}运势</div><div class="start">农历华人新年一月一日开始</div>
+    <div class="flow">流年大运<br>十二个月</div><div class="summary">${esc(yr.overall)}<br>${esc(yr.caution)}</div>
+    <div class="adv">凶月来临时，需要注意，做事情多计划<br>不要冲动，思考全面后才去做。<br>不要意气用事，不要随便投资<br>多做慈善，可以有宗教信仰<br>保持乐观，找自己喜欢的东西研究<br>也不要担心，都会过去的，多一些正能量</div></div>`;
+  document.getElementById('yboard').innerHTML = yh;
+}
+document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); render(); });
+if(window.iztro && window.Lunar) render();
+else document.getElementById('msg').innerHTML = '<span class="err">排盘程序载入失败，请重新打开 App。</span>';
+</script>
+<script>
+if('serviceWorker' in navigator){ window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {})); }
+</script>
+</body>
+</html>
