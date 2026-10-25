@@ -128,15 +128,16 @@ function advice(astrolabe){
 function yearReading(astrolabe, year, timeIndex, Lunar){
   const months = [];
   for(let m = 1; m <= 12; m++){
-    const date = Lunar.fromYmd(year, m, 15).getSolar().toYmd();
-    const h = astrolabe.horoscope(date, timeIndex);
+    const sol = Lunar.fromYmd(year, m, 15).getSolar();
+    const h = astrolabe.horoscope(new Date(sol.getYear(), sol.getMonth() - 1, sol.getDay(), 12), timeIndex);
     const p = astrolabe.palaces[h.monthly.index];
     const flow = h.monthly.mutagen;
     const score = palaceScore(p, flow), good = score >= 0;
     months.push({m, good, score, branch: p.earthlyBranch, palace: p.name, lines: monthText(p, good, flow)});
   }
   const bad = months.filter(x => !x.good).length;
-  const h = astrolabe.horoscope(Lunar.fromYmd(year, 6, 15).getSolar().toYmd(), timeIndex);
+  const mid = Lunar.fromYmd(year, 6, 15).getSolar();
+  const h = astrolabe.horoscope(new Date(mid.getYear(), mid.getMonth() - 1, mid.getDay(), 12), timeIndex);
   const jiStar = h.yearly.mutagen[3];
   const jiPalace = astrolabe.palaces.find(p => [...p.majorStars, ...p.minorStars].some(s => s.name === jiStar));
   const jiCat = jiPalace ? CAT[jiPalace.name] : 'self';
