@@ -221,7 +221,7 @@ function render(){
   yh += `<div class="ycenter">
     <div class="who">${esc(name)}<br>${year}运势</div><div class="start">农历华人新年一月一日开始</div>
     <div class="flow">流年大运<br>十二个月</div><div class="summary">${esc(yr.overall)}<br>${esc(yr.caution)}</div>
-    <div class="adv">凶月来临时，需要注意，做事情多计划<br>不要冲动，思考全面后才去做。<br>不要意气用事，不要随便投资<br>多做慈善，可以有宗教信仰<br>保持乐观，找自己喜欢的东西研究<br>也不要担心，都会过去的，多一些正能量</div></div>`;
+    <div class="adv">${yr.advice.map(esc).join('<br>')}</div></div>`;
   document.getElementById('yboard').innerHTML = yh;
 }
 function update(){ const ok = render() !== false; for(const id of ['board','yboard']){ const el = $(id); el.classList.toggle('stale', !ok); if(!ok) continue; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); } }

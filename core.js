@@ -143,7 +143,26 @@ function yearReading(astrolabe, year, timeIndex, Lunar){
   const jiCat = jiPalace ? CAT[jiPalace.name] : 'self';
   const CAUTION = {self:'注意自己的情绪和健康',kin:'注意自己与家人的沟通和相处',love:'注意感情与婚姻的经营',money:'注意钱财进出，不要乱投资',health:'注意身体健康，按时检查',travel:'出外注意安全，凡事小心',social:'注意自己与人的沟通和相处',career:'工作上注意小人与是非',house:'注意房产和合约文件',late:'注意心情，不要想太多'};
   const overall = bad <= 3 ? '整体是不错的一年' : bad <= 5 ? '吉凶参半，稳中求进的一年' : '挑战较多的一年，宜守不宜攻';
-  return {months, bad, overall, caution: CAUTION[jiCat], yearGanZhi: h.yearly.heavenlyStem + h.yearly.earthlyBranch, jiStar};
+  // 流年四化落宫 → 个人化建议
+  const CN = ['一','二','三','四','五','六','七','八','九','十','十一','十二'];
+  const findPalace = name => astrolabe.palaces.find(p => [...p.majorStars, ...p.minorStars].some(s => s.name === name));
+  const label = p => p ? (p.name === '命宫' ? '自己' : (DOMAIN[p.name] || p.name)) : '';
+  const LU = {self:'个人运势旺，努力就有收获',kin:'家人会带来好运和帮助',love:'感情顺利，配偶带财',money:'财运旺，有机会赚到钱',health:'身体比去年好',travel:'出外有财，适合多走动',social:'朋友合作有利，可以谈生意',career:'事业有收获，适合争取升职加薪',house:'家宅房产运好',late:'心情愉快，懂得享受生活'};
+  const [luS, quanS, keS] = h.yearly.mutagen;
+  const luP = findPalace(luS), quanP = findPalace(quanS), keP = findPalace(keS);
+  const yearMing = astrolabe.palaces[h.yearly.index];
+  const rough = [...yearMing.majorStars, ...yearMing.minorStars].some(s => UNLUCKY.includes(s.name) || s.brightness === '陷' || s.mutagen === '忌');
+  const badList = months.filter(x => !x.good).map(x => CN[x.m - 1]).join('、');
+  const goodList = months.filter(x => x.good && x.score >= 2).map(x => CN[x.m - 1]).join('、');
+  const advice = [];
+  advice.push(bad ? `凶月是${badList}月，这几个月做事情多计划` : '十二个月都平稳，按部就班就好');
+  if(goodList) advice.push(`${goodList}月运势最好，重要的事安排在这几个月`);
+  if(luP) advice.push(`${luS}化禄入${luP.name === '命宫' ? '命宫' : luP.name + '宫'}：${LU[CAT[luP.name]]}`);
+  if(quanP) advice.push(`${quanS}化权入${quanP.name === '命宫' ? '命宫' : quanP.name + '宫'}：${label(quanP)}方面可以主动争取`);
+  if(keP) advice.push(`${keS}化科入${keP.name === '命宫' ? '命宫' : keP.name + '宫'}：${label(keP)}方面有贵人和好名声`);
+  advice.push(rough ? '流年命宫有煞，不要冲动，思考全面后才去做' : '流年命宫平稳，适合规划长远目标');
+  advice.push(bad >= 6 ? '不要意气用事，不要随便投资' : '保持乐观，多一些正能量');
+  return {months, bad, overall, caution: CAUTION[jiCat], yearGanZhi: h.yearly.heavenlyStem + h.yearly.earthlyBranch, jiStar, advice, yearMingPalace: yearMing.name};
 }
 
 if(typeof module !== 'undefined') module.exports = {palaceScore, palaceText, monthText, selfTraits, advice, yearReading, DOMAIN};
