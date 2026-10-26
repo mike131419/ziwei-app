@@ -170,6 +170,7 @@ try { const saved = JSON.parse(localStorage.getItem('zw-last2') || 'null');
     if(saved.cal){ $('cal').value = saved.cal; fillMD(); }
     FIELDS.forEach(k => { if(saved[k] == null) return; if($(k).type === 'checkbox') $(k).checked = saved[k]; else $(k).value = saved[k]; });
   } } catch(e){}
+let CHART_CACHE = {};
 function render(){
   const msg = document.getElementById('msg');
   const name = document.getElementById('name').value.trim() || '无名';
@@ -183,8 +184,13 @@ function render(){
   if(!lunar){ const t = new Date(y, m - 1, d); if(t.getMonth() !== m - 1){ msg.innerHTML = `<span class="err">${y}年${m}月没有${d}日，请重新选择日期。</span>`; return false; } }
   try { localStorage.setItem('zw-last2', JSON.stringify(Object.fromEntries(FIELDS.map(k => [k, getV(k)])))); } catch(e){}
   let a;
-  try { a = lunar ? iztro.astro.byLunar(date, ti, gender, $('leap').checked, true, 'zh-CN') : iztro.astro.bySolar(date, ti, gender, true, 'zh-CN'); }
-  catch(e){ a = null; }
+  const ckey = [lunar, date, ti, gender, $('leap').checked].join('|');
+  if(CHART_CACHE.key === ckey) a = CHART_CACHE.a;
+  else {
+    try { a = lunar ? iztro.astro.byLunar(date, ti, gender, $('leap').checked, true, 'zh-CN') : iztro.astro.bySolar(date, ti, gender, true, 'zh-CN'); }
+    catch(e){ a = null; }
+    if(a) CHART_CACHE = {key: ckey, a};
+  }
   if(a && a.palaces) applySchool(a);
   if(!a || !a.palaces || a.palaces.length !== 12){ msg.innerHTML = '<span class="err">这个日期无法排盘，请检查日期（农历小月没有三十，或该年没有这个闰月）。</span>'; return false; }
   msg.textContent = lunar ? `阳历 ${a.solarDate} · 八字 ${a.chineseDate}` : `农历 ${a.lunarDate} · 八字 ${a.chineseDate}`;
