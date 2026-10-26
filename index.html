@@ -185,6 +185,7 @@ function render(){
   let a;
   try { a = lunar ? iztro.astro.byLunar(date, ti, gender, $('leap').checked, true, 'zh-CN') : iztro.astro.bySolar(date, ti, gender, true, 'zh-CN'); }
   catch(e){ a = null; }
+  if(a && a.palaces) applySchool(a);
   if(!a || !a.palaces || a.palaces.length !== 12){ msg.innerHTML = '<span class="err">这个日期无法排盘，请检查日期（农历小月没有三十，或该年没有这个闰月）。</span>'; return false; }
   msg.textContent = lunar ? `阳历 ${a.solarDate} · 八字 ${a.chineseDate}` : `农历 ${a.lunarDate} · 八字 ${a.chineseDate}`;
   const sy = lunar ? `农历${y}年` : `${y}年`, smd = lunar ? `${$('leap').checked ? '闰' : ''}${LUNAR_M[m - 1]}${LUNAR_D[d - 1]}` : `${m}月${d}日`;
