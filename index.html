@@ -81,6 +81,29 @@ button:hover{filter:brightness(1.08)} :focus-visible{outline:2px solid var(--dom
 .fly ul{margin:6px 0 0;padding-left:1.2em;display:grid;gap:4px}
 .muted{color:var(--muted)}
 .dnote{font-size:.8rem;color:var(--muted);max-width:65ch}
+.jump{display:flex;flex-wrap:wrap;gap:6px}
+.jump a{color:var(--ink);text-decoration:none;border:1px solid var(--rule);padding:4px 10px;border-radius:999px;font-size:.88rem}
+.jump a:hover{background:var(--soft)}
+.combo{display:flex;gap:14px;align-items:center;padding:12px 14px;border:2px solid var(--ji);border-radius:4px}
+.combo p{margin:2px 0 0}
+.cidx{display:grid;justify-items:center;gap:4px;flex:none}
+.cnum{font-family:var(--display);font-size:2rem;font-weight:800;color:var(--ji);font-variant-numeric:tabular-nums;line-height:1}
+.pils{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;max-width:520px}
+.pil{border:1.5px solid var(--rule);display:grid;justify-items:center;padding:8px 4px;gap:2px;text-align:center}
+.pl{font-size:.78rem;color:var(--muted)} .ss{font-size:.75rem;color:var(--domain)} .ny{font-size:.75rem;color:var(--muted)}
+.gz{font-family:var(--display);font-size:1.5rem;letter-spacing:.1em;color:var(--ji)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.two h3{margin-top:4px}
+.wx{display:grid;grid-template-columns:1.5em 1fr 3em;gap:8px;align-items:center;margin:4px 0}
+.wx-木{background:#3f8f4a} .wx-火{background:#d6200f} .wx-土{background:#b8862b} .wx-金{background:#9aa0a6} .wx-水{background:#2f6ea8}
+.kv{list-style:none;padding:0;margin:6px 0;display:grid;gap:4px}
+.kv span{display:inline-block;width:5.5em;color:var(--muted)}
+.zrm{max-width:200px}
+.zrg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:8px}
+.zra{border:1px solid var(--rule);padding:8px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;align-content:flex-start}
+.zra b{flex-basis:100%}
+.zd{background:var(--soft);padding:2px 8px;border-radius:2px;font-variant-numeric:tabular-nums}
+.zd small{color:var(--muted);margin-left:3px}
 .stale{opacity:.25}
 .flash{animation:flash .6s ease-out}
 @keyframes flash{from{background:var(--gold)}to{background:transparent}}
@@ -134,31 +157,36 @@ footer{font-size:.8rem;color:var(--muted);max-width:65ch}
   </header>
 
   <form id="f">
-    <div class="field"><label for="name">姓名</label><input id="name" value="秀玲"></div>
-    <div class="field"><label for="gender">性别</label><select id="gender"><option>女</option><option>男</option></select></div>
+    <div class="field"><label for="name">姓名</label><input id="name" value="MIKE"></div>
+    <div class="field"><label for="gender">性别</label><select id="gender"><option>男</option><option>女</option></select></div>
     <div class="field"><label for="cal">历法</label><select id="cal"><option value="solar">阳历</option><option value="lunar">农历</option></select></div>
     <div class="field"><label for="by">出生日期</label><div class="dsel"><select id="by" aria-label="出生年"></select><select id="bm" aria-label="出生月"></select><select id="bd" aria-label="出生日"></select></div></div>
     <label class="leap" id="leapwrap" hidden><input type="checkbox" id="leap"> 闰月</label>
     <div class="field"><label for="hour">出生时辰</label><select id="hour"></select></div>
     <div class="field"><label for="year">流年</label><select id="year"></select></div>
     <button type="submit">排盘</button>
-    <div class="note" id="msg">示例资料：秀玲 1985年11月23日 戌时。更改任何资料，命盘会自动更新。</div>
+    <div class="note" id="msg">示例资料：MIKE 1982年7月19日 晚上7点（戌时）。更改任何资料，结果会自动更新。</div>
   </form>
 
-  <section>
+  <nav class="jump" aria-label="跳到">
+    <a href="#s-chart">命盘</a><a href="#s-year">流年</a><a href="#deep">深度解读</a><a href="#s-bazi">八字</a><a href="#s-ts">太岁</a><a href="#s-zr">择日</a><a href="#s-star">星座</a><a href="#s-lp">灵数</a>
+  </nav>
+
+  <section id="s-chart">
     <h2>本命十二宫 <small id="sub"></small></h2>
     <p class="hint">← 命盘可左右滑动查看 →</p>
     <div class="scroll"><div class="board" id="board"></div></div>
     <div class="side" id="side"></div>
   </section>
 
-  <section>
+  <section id="s-year">
     <h2 id="yh">流年十二个月</h2>
     <div class="scroll"><div class="board" id="yboard"></div></div>
   </section>
 
   <section class="deep" id="deep">
     <h2>深度解读 <small>三合派格局 · 四化飞星 · 运限叠宫</small></h2>
+    <div class="combo" id="dcombo"></div>
     <p class="verdict" id="dverdict"></p>
     <h3>流年六大运势</h3>
     <div class="areas" id="dareas"></div>
@@ -173,6 +201,33 @@ footer{font-size:.8rem;color:var(--muted);max-width:65ch}
     <p class="dnote">按公开的紫微斗数规则（格局成格条件、化出化入与自化、大限流年叠宫、化忌层次）计算，同一张命盘每次结果相同。仅供参考。</p>
   </section>
 
+  <section class="deep" id="s-bazi">
+    <h2>八字命理 <small>四柱 · 五行 · 喜用神 · 大运</small></h2>
+    <div id="bz"></div>
+  </section>
+
+  <section class="deep" id="s-ts">
+    <h2>生肖太岁</h2>
+    <div id="ts"></div>
+  </section>
+
+  <section class="deep" id="s-zr">
+    <h2>黄历择日 <small id="zrsub"></small></h2>
+    <div class="field zrm"><label for="zrmonth">农历月份</label><select id="zrmonth"></select></div>
+    <div id="zr"></div>
+    <p class="dnote">已避开冲你生肖的日子，只列黄道吉日。</p>
+  </section>
+
+  <section class="deep" id="s-star">
+    <h2>西洋星座</h2>
+    <div id="zd"></div>
+  </section>
+
+  <section class="deep" id="s-lp">
+    <h2>生命灵数</h2>
+    <div id="lp"></div>
+  </section>
+
   <footer>排盘由开源库 iztro 计算，农历换算用 lunar-javascript。宫位解读与吉凶规则写在页面脚本最上方的资料库，可替换成师傅的版本。仅供参考娱乐。</footer>
 </div>
 
@@ -180,6 +235,8 @@ footer{font-size:.8rem;color:var(--muted);max-width:65ch}
 <script src="lib/lunar.js"></script>
 <script src="core.js"></script>
 <script src="deep.js"></script>
+<script src="lib/astronomy.browser.min.js"></script>
+<script src="extra.js"></script>
 <script>
 const HOURS = ['早子 23:00-00:59','丑 01:00-02:59','寅 03:00-04:59','卯 05:00-06:59','辰 07:00-08:59','巳 09:00-10:59','午 11:00-12:59','未 13:00-14:59','申 15:00-16:59','酉 17:00-18:59','戌 19:00-20:59','亥 21:00-22:59','晚子 23:00-23:59'];
 const hourSel = document.getElementById('hour');
@@ -209,7 +266,7 @@ function fillMD(){
   $('leapwrap').hidden = !lunar;
 }
 fillMD();
-$('by').value = 1985; $('bm').value = 11; $('bd').value = 23; $('year').value = THIS_YEAR;
+$('by').value = 1982; $('bm').value = 7; $('bd').value = 19; $('year').value = THIS_YEAR;
 const FIELDS = ['name','gender','cal','by','bm','bd','leap','hour','year'];
 const getV = k => $(k).type === 'checkbox' ? $(k).checked : $(k).value;
 try { const saved = JSON.parse(localStorage.getItem('zw-last2') || 'null');
@@ -218,6 +275,14 @@ try { const saved = JSON.parse(localStorage.getItem('zw-last2') || 'null');
     FIELDS.forEach(k => { if(saved[k] == null) return; if($(k).type === 'checkbox') $(k).checked = saved[k]; else $(k).value = saved[k]; });
   } } catch(e){}
 let CHART_CACHE = {};
+// 八字以节气分月（立春换年），和紫微斗数用农历月不同，这里用 lunar-javascript 的正确四柱
+function trueBazi(a, ti){
+  try {
+    const [sy, sm, sd] = String(a.solarDate).split('-').map(Number);
+    const hour = ti === 0 ? 0 : ti === 12 ? 23 : ti * 2;
+    return Solar.fromYmdHms(sy, sm, sd, hour, 0, 0).getLunar().getEightChar().toString();
+  } catch(e){ return a.chineseDate; }
+}
 function render(){
   const msg = document.getElementById('msg');
   const name = document.getElementById('name').value.trim() || '无名';
@@ -240,7 +305,8 @@ function render(){
   }
   if(a && a.palaces) applySchool(a);
   if(!a || !a.palaces || a.palaces.length !== 12){ msg.innerHTML = '<span class="err">这个日期无法排盘，请检查日期（农历小月没有三十，或该年没有这个闰月）。</span>'; return false; }
-  msg.textContent = lunar ? `阳历 ${a.solarDate} · 八字 ${a.chineseDate}` : `农历 ${a.lunarDate} · 八字 ${a.chineseDate}`;
+  const BZ = trueBazi(a, ti);
+  msg.textContent = lunar ? `阳历 ${a.solarDate} · 八字 ${BZ}` : `农历 ${a.lunarDate} · 八字 ${BZ}`;
   const sy = lunar ? `农历${y}年` : `${y}年`, smd = lunar ? `${$('leap').checked ? '闰' : ''}${LUNAR_M[m - 1]}${LUNAR_D[d - 1]}` : `${m}月${d}日`;
   document.getElementById('sub').textContent = `${a.fiveElementsClass} · 命主${a.soul} · 身主${a.body}`;
 
@@ -263,7 +329,7 @@ function render(){
     <div class="col">${lines(traits.slice(16, 20))}<span class="advh">建议</span>${lines(advice(a))}</div></div>`;
   document.getElementById('board').innerHTML = html;
   document.getElementById('side').innerHTML =
-    `<span class="chip">八字<b>${esc(a.chineseDate)}</b></span><span class="chip">生肖<b>${esc(a.zodiac)}</b></span><span class="chip">星座<b>${esc(a.sign)}</b></span>`;
+    `<span class="chip">八字<b>${esc(BZ)}</b></span><span class="chip">生肖<b>${esc(a.zodiac)}</b></span><span class="chip">星座<b>${esc(a.sign)}</b></span>`;
 
   // 流年
   const yr = yearReading(a, year, ti, Lunar);
@@ -286,6 +352,7 @@ const GCLS = g => ({'大吉':'g5','吉':'g4','平':'g3','注意':'g2','小心':'
 function renderDeep(a, year, ti, bad){
   const r = DEEP.year(a, Lunar, year, ti, bad);
   $('dverdict').textContent = `${year} ${r.yearGZ}年 · ${r.verdict}`;
+  renderMore(a, year, ti, r.avg);
   $('dareas').innerHTML = r.areas.map(x => `<div class="area">
       <div class="ah"><b>${esc(x.label)}</b><span class="chip2 ${GCLS(x.grade)}">${esc(x.grade)}</span><span class="num">${x.score}</span></div>
       <div class="bar"><i class="${GCLS(x.grade)}" style="width:${x.score}%"></i></div>
@@ -304,6 +371,61 @@ function renderDeep(a, year, ti, bad){
     <details><summary>宫干飞化（命、财、官、夫妻、福德、田宅）</summary>${ul(f.fly)}</details>
     <details><summary>自化（${f.self.length} 处）</summary>${f.self.length ? ul(f.self) : '<p class="muted">没有自化。</p>'}</details>`;
 }
+const LM = ['正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','冬月','腊月'];
+for(let i = 1; i <= 12; i++) opt($('zrmonth'), i, LM[i - 1]);
+let MORE_CTX = null;
+function renderMore(a, year, ti, ziweiAvg){
+  const [sy, sm, sd] = String(a.solarDate).split('-').map(Number);
+  const hour = ti === 0 ? 0 : ti === 12 ? 23 : ti * 2;
+  const male = a.gender === '男';
+  const bz = MORE.bazi(sy, sm, sd, hour, male), by = MORE.baziYear(bz, year);
+  const sxZhi = Solar.fromYmd(sy, sm, sd).getLunar().getYearZhi();
+  const ts = MORE.taisui(sxZhi, year);
+  const cb = MORE.combine(ziweiAvg, by.score, ts.score);
+  $('dcombo').innerHTML = `<div class="cidx"><span class="cnum">${cb.index}</span><span class="chip2 ${GCLS(cb.grade)}">${esc(cb.grade)}</span></div>
+    <div><b>${year} 综合运势指数</b><p>${esc(cb.text)}</p>
+    <p class="why">紫微斗数 ${ziweiAvg} · 八字流年 ${by.score} · 生肖太岁 ${ts.score}</p></div>`;
+  // 八字
+  const wxBar = Object.entries(bz.wx).map(([k, v]) => `<div class="wx"><span>${k}</span><span class="bar"><i class="wx-${k}" style="width:${v}%"></i></span><span class="num">${v}%</span></div>`).join('');
+  const pill = bz.pillars.map(p => `<div class="pil"><span class="pl">${p.label}</span><span class="ss">${esc(p.sg)}</span><b class="gz">${esc(p.gz)}</b><span class="ss">${esc(p.sz.join(' '))}</span><span class="ny">${esc(p.ny)}</span></div>`).join('');
+  const L = bz.lucky;
+  $('bz').innerHTML = `<div class="pils">${pill}</div>
+    <p><b>日主${esc(bz.dm)}（${esc(bz.me)}）</b>：${esc(bz.dmText)}</p>
+    <div class="two"><div><h3>五行力量</h3>${wxBar}<p>${esc(bz.strength)}（帮身力量 ${bz.ratio}%）：${esc(bz.strengthText)}</p></div>
+    <div><h3>喜用神 · 开运</h3><p><b>最需要：${esc(L.use)}</b>${L.also.length ? '，其次：' + esc(L.also.join('、')) : ''}；要避开：${esc(L.avoid.join('、'))}</p>
+    <ul class="kv"><li><span>幸运颜色</span>${esc(L.color)}</li><li><span>有利方位</span>${esc(L.dir)}</li><li><span>幸运数字</span>${esc(L.num)}</li><li><span>适合行业</span>${esc(L.career)}</li></ul></div></div>
+    <h3>${year} 八字流年：${esc(by.gz)} <span class="chip2 ${GCLS(by.grade)}">${esc(by.grade)}</span></h3>
+    <ul class="dnotes">${by.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>
+    <h3>八字大运 <small class="muted">${esc(bz.startText)}</small></h3>
+    <div class="decs">${bz.dayun.map(d => `<div class="dec${by.dayun && by.dayun.gz === d.gz ? ' cur' : ''}"><span class="dage">${d.age}–${d.end}岁</span><span class="dpal">${esc(d.gz)}</span><span class="bar"><i class="${GCLS(d.grade)}" style="width:${d.score}%"></i></span><span class="chip2 ${GCLS(d.grade)}">${esc(d.grade)}</span><span class="dw">${esc(d.text)}${by.dayun && by.dayun.gz === d.gz ? ' · 目前' : ''}</span></div>`).join('')}</div>
+    <p class="dnote">十神小字：${bz.pillars.filter(p => p.sg !== '日主').map(p => p.sg).filter((v, i, x) => x.indexOf(v) === i).map(k => `${k}＝${MORE_SS[k] || ''}`).join('；')}</p>`;
+  // 太岁
+  $('ts').innerHTML = `<p>你属<b>${esc(ts.shengxiao)}</b>，${year}年是${esc(ts.yearGZ)}${esc(ts.yearShengxiao)}年。<span class="chip2 ${GCLS(ts.grade)}">${esc(ts.grade)}</span></p>
+    ${ts.list.length ? `<ul class="dnotes">${ts.list.map(x => `<li><span class="tag ${x.bad ? 't-警示' : 't-好运'}">${esc(x.k)}</span>${esc(x.text)}</li>`).join('')}</ul>` : '<p>今年没有犯太岁。</p>'}
+    <p class="muted">${esc(ts.advice)}</p>`;
+  // 择日
+  MORE_CTX = {year, sx: MORE.SX[sxZhi]};
+  const thisLunar = Lunar.fromDate(new Date());
+  if(!$('zrmonth').dataset.touched) $('zrmonth').value = thisLunar.getYear() === year ? Math.abs(thisLunar.getMonth()) : 1;
+  renderZeri();
+  // 星座
+  const z = MORE.zodiac(sy, sm, sd, hour);
+  $('zd').innerHTML = z ? `<div class="two"><div class="pat k-吉"><b>太阳星座：${esc(z.sun.name)}</b><span class="pk">${esc(z.sun.el)}象 · ${esc(z.sun.mode)}</span><p>外在个性：${esc(z.sun.text)}</p></div>
+    <div class="pat"><b>月亮星座：${esc(z.moon.name)}</b><span class="pk">${esc(z.moon.el)}象</span><p>内心情感：${esc(z.moon.text)}</p></div></div>
+    <p class="dnote">月亮位置按马来西亚时间（UTC+8）和时辰中间点计算${z.moonNear ? '；出生时月亮接近星座交界，可能是相邻星座' : ''}。上升星座需要出生地点，暂未计算。</p>` : '';
+  // 生命灵数
+  const lp = MORE.lifePath(sy, sm, sd);
+  $('lp').innerHTML = `<div class="combo"><div class="cidx"><span class="cnum">${esc(lp.code)}</span></div><div><b>生命数 ${lp.number}</b><p>${esc(lp.text)}</p></div></div>
+    ${lp.missing.length ? `<p>出生日期缺少的数字：${lp.missing.map(m => `<b>${m.k}</b>（${esc(m.text)}）`).join('、')}，是这一生要多练习的课题。</p>` : '<p>1 到 9 都有，个性全面。</p>'}`;
+}
+const MORE_SS = {比肩:'自主、朋友兄弟',劫财:'竞争、合伙',食神:'才华、享受',伤官:'表达、创意',偏财:'偏财、生意',正财:'稳定收入',七杀:'压力、魄力',正官:'规矩、地位',偏印:'偏门学问、灵感',正印:'学业、贵人'};
+function renderZeri(){
+  if(!MORE_CTX) return;
+  const lm = +$('zrmonth').value;
+  $('zrsub').textContent = `${MORE_CTX.year}年农历${LM[lm - 1]} · 避开冲${MORE_CTX.sx}`;
+  $('zr').innerHTML = `<div class="zrg">${MORE.zeri(MORE_CTX.year, lm, MORE_CTX.sx).map(a => `<div class="zra"><b>${esc(a.label)}</b>${a.days.length ? a.days.map(d => `<span class="zd">${esc(d.date)}（${esc(d.week)}）<small>${esc(d.lunar)}</small></span>`).join('') : '<span class="muted">本月没有合适的日子</span>'}</div>`).join('')}</div>`;
+}
+$('zrmonth').addEventListener('change', e => { e.stopPropagation(); $('zrmonth').dataset.touched = '1'; renderZeri(); });
 function update(){ const ok = render() !== false; for(const id of ['board','yboard']){ const el = $(id); el.classList.toggle('stale', !ok); if(!ok) continue; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); } }
 $('f').addEventListener('submit', e => { e.preventDefault(); update(); $('board').scrollIntoView({behavior: 'smooth', block: 'start'}); });
 $('cal').addEventListener('change', fillMD);
