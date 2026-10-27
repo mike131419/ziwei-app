@@ -48,8 +48,39 @@ button:hover{filter:brightness(1.08)} :focus-visible{outline:2px solid var(--dom
 .leap{display:flex;gap:6px;align-items:center;padding-bottom:8px}
 .leap[hidden]{display:none}
 .mp{font-size:.78em;color:var(--muted);margin-top:4px}
-.ynotes{margin-top:12px;padding:12px 14px;background:var(--soft);border-radius:4px;display:grid;gap:4px;max-width:65ch}
-.ynotes h3{margin:0 0 4px;font-family:var(--display);font-size:1rem;color:var(--xiong)}
+.deep{display:grid;gap:10px;min-width:0}
+.deep h3{font-family:var(--display);font-size:1.05rem;margin:14px 0 0;color:var(--ink)}
+.verdict{margin:0;padding:12px 14px;background:var(--ji);color:var(--on-chip);font-weight:500;border-radius:3px}
+.areas{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:10px}
+.area{border:1.5px solid var(--rule);padding:10px 12px;display:grid;gap:6px;align-content:start;min-width:0}
+.area p{margin:0}
+.ah{display:flex;align-items:center;gap:8px}
+.ah b{font-size:1.05rem}
+.num{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--muted)}
+.bar{display:block;height:8px;background:var(--soft);border-radius:4px;overflow:hidden;min-width:60px}
+.bar i{display:block;height:100%}
+.why{font-size:.82rem;color:var(--muted)}
+.chip2{font-size:.78rem;padding:1px 8px;border-radius:2px;color:var(--on-chip);white-space:nowrap}
+.g5,.g4{background:var(--ji)} .g3{background:var(--gold);color:var(--ink)} .g2,.g1{background:var(--xiong)}
+.bar i.g4{opacity:.75} .bar i.g2{opacity:.75}
+.dnotes{margin:0;padding:0;list-style:none;display:grid;gap:6px;max-width:75ch}
+.dnotes li{display:flex;gap:8px;align-items:baseline}
+.tag{flex:none;font-size:.75rem;padding:1px 6px;border:1px solid var(--rule);border-radius:2px;color:var(--muted)}
+.t-警示{border-color:var(--xiong);color:var(--xiong)} .t-好运{border-color:var(--ji);color:var(--ji)}
+.decs{display:grid;gap:6px}
+.dec{display:grid;grid-template-columns:5.5em 4em minmax(60px,1fr) 3.2em;gap:4px 10px;align-items:center;padding:4px 6px;border-radius:3px}
+.dec .dw{grid-column:1/-1;font-size:.82rem;color:var(--muted);padding-left:0}
+.dec.cur{background:var(--soft);outline:1.5px solid var(--ji)}
+.dage{font-variant-numeric:tabular-nums}
+.pats{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));gap:8px}
+.pat{border-left:4px solid var(--gold);padding:6px 10px;background:var(--soft)}
+.pat.k-吉{border-color:var(--ji)} .pat.k-凶{border-color:var(--xiong)}
+.pat b{margin-right:8px} .pk{font-size:.78rem;color:var(--muted)} .pat p{margin:4px 0 0}
+.fly details{border:1px solid var(--soft);padding:6px 10px;margin-bottom:6px}
+.fly summary{cursor:pointer;font-weight:500}
+.fly ul{margin:6px 0 0;padding-left:1.2em;display:grid;gap:4px}
+.muted{color:var(--muted)}
+.dnote{font-size:.8rem;color:var(--muted);max-width:65ch}
 .stale{opacity:.25}
 .flash{animation:flash .6s ease-out}
 @keyframes flash{from{background:var(--gold)}to{background:transparent}}
@@ -124,7 +155,22 @@ footer{font-size:.8rem;color:var(--muted);max-width:65ch}
   <section>
     <h2 id="yh">流年十二个月</h2>
     <div class="scroll"><div class="board" id="yboard"></div></div>
-    <div class="ynotes" id="ynotes"></div>
+  </section>
+
+  <section class="deep" id="deep">
+    <h2>深度解读 <small>三合派格局 · 四化飞星 · 运限叠宫</small></h2>
+    <p class="verdict" id="dverdict"></p>
+    <h3>流年六大运势</h3>
+    <div class="areas" id="dareas"></div>
+    <h3>今年重点</h3>
+    <ul class="dnotes" id="dnotes"></ul>
+    <h3>人生大限运势</h3>
+    <div class="decs" id="ddecs"></div>
+    <h3>命盘格局</h3>
+    <div class="pats" id="dpats"></div>
+    <h3>四化飞星</h3>
+    <div class="fly" id="dfly"></div>
+    <p class="dnote">按公开的紫微斗数规则（格局成格条件、化出化入与自化、大限流年叠宫、化忌层次）计算，同一张命盘每次结果相同。仅供参考。</p>
   </section>
 
   <footer>排盘由开源库 iztro 计算，农历换算用 lunar-javascript。宫位解读与吉凶规则写在页面脚本最上方的资料库，可替换成师傅的版本。仅供参考娱乐。</footer>
@@ -133,6 +179,7 @@ footer{font-size:.8rem;color:var(--muted);max-width:65ch}
 <script src="lib/iztro.min.js"></script>
 <script src="lib/lunar.js"></script>
 <script src="core.js"></script>
+<script src="deep.js"></script>
 <script>
 const HOURS = ['早子 23:00-00:59','丑 01:00-02:59','寅 03:00-04:59','卯 05:00-06:59','辰 07:00-08:59','巳 09:00-10:59','午 11:00-12:59','未 13:00-14:59','申 15:00-16:59','酉 17:00-18:59','戌 19:00-20:59','亥 21:00-22:59','晚子 23:00-23:59'];
 const hourSel = document.getElementById('hour');
@@ -233,7 +280,29 @@ function render(){
     <div class="flow">流年大运<br>十二个月</div><div class="summary">${esc(yr.overall)}<br>${esc(yr.caution)}</div>
     <div class="adv">凶月来临时，需要注意，做事情多计划<br>不要冲动，思考全面后才去做。<br>不要意气用事，不要投资<br>做更多慈善，一定要有宗教信仰<br>要保持乐观，找自己喜欢的东西研究<br>也不要担心，都会过去的，多一些正能量</div></div>`;
   document.getElementById('yboard').innerHTML = yh;
-  document.getElementById('ynotes').innerHTML = `<h3>流年重点</h3>${lines(yr.advice)}`;
+  renderDeep(a, year, ti, yr.bad);
+}
+const GCLS = g => ({'大吉':'g5','吉':'g4','平':'g3','注意':'g2','小心':'g1'})[g];
+function renderDeep(a, year, ti, bad){
+  const r = DEEP.year(a, Lunar, year, ti, bad);
+  $('dverdict').textContent = `${year} ${r.yearGZ}年 · ${r.verdict}`;
+  $('dareas').innerHTML = r.areas.map(x => `<div class="area">
+      <div class="ah"><b>${esc(x.label)}</b><span class="chip2 ${GCLS(x.grade)}">${esc(x.grade)}</span><span class="num">${x.score}</span></div>
+      <div class="bar"><i class="${GCLS(x.grade)}" style="width:${x.score}%"></i></div>
+      <p>${esc(x.text)}</p>${x.why.length ? `<p class="why">${esc(x.why.join('、'))}</p>` : ''}</div>`).join('');
+  $('dnotes').innerHTML = r.notes.map(n => `<li><span class="tag t-${esc(n.k)}">${esc(n.k)}</span>${esc(n.text)}</li>`).join('');
+  const age = year - +String(a.solarDate).slice(0, 4) + 1;
+  $('ddecs').innerHTML = DEEP.decades(a, age).map(x => `<div class="dec${x.current ? ' cur' : ''}">
+      <span class="dage">${x.from}–${x.to}岁</span><span class="dpal">${esc(x.palace === '命宫' ? '命宫' : x.palace + '宫')}</span>
+      <span class="bar"><i class="${GCLS(x.grade)}" style="width:${x.score}%"></i></span><span class="chip2 ${GCLS(x.grade)}">${esc(x.grade)}</span>
+      <span class="dw">${esc(x.words.join('、'))}${x.current ? ' · 目前' : ''}</span></div>`).join('');
+  const pats = DEEP.patterns(a);
+  $('dpats').innerHTML = pats.length ? pats.map(p => `<div class="pat k-${p.kind}"><b>${esc(p.name)}</b><span class="pk">${p.kind === '吉' ? '吉格' : p.kind === '凶' ? '凶格' : '变格'}${p.broken ? ' · 有破，力量减弱' : ''}</span><p>${esc(p.meaning)}</p></div>`).join('') : '<p class="muted">没有明显的特殊格局，以各宫星曜为主。</p>';
+  const f = DEEP.flying(a);
+  const ul = arr => `<ul>${arr.map(x => `<li>${esc(x.text)}</li>`).join('')}</ul>`;
+  $('dfly').innerHTML = `<details open><summary>生年四化（一生的底色）</summary>${ul(f.birth)}</details>
+    <details><summary>宫干飞化（命、财、官、夫妻、福德、田宅）</summary>${ul(f.fly)}</details>
+    <details><summary>自化（${f.self.length} 处）</summary>${f.self.length ? ul(f.self) : '<p class="muted">没有自化。</p>'}</details>`;
 }
 function update(){ const ok = render() !== false; for(const id of ['board','yboard']){ const el = $(id); el.classList.toggle('stale', !ok); if(!ok) continue; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); } }
 $('f').addEventListener('submit', e => { e.preventDefault(); update(); $('board').scrollIntoView({behavior: 'smooth', block: 'start'}); });
