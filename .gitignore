@@ -1,0 +1,3 @@
+*.db
+server/download/
+__pycache__/
