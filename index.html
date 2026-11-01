@@ -76,11 +76,47 @@ button:hover{filter:brightness(1.08)} :focus-visible{outline:2px solid var(--dom
 .pat{border-left:4px solid var(--gold);padding:6px 10px;background:var(--soft)}
 .pat.k-吉{border-color:var(--ji)} .pat.k-凶{border-color:var(--xiong)}
 .pat b{margin-right:8px} .pk{font-size:.78rem;color:var(--muted)} .pat p{margin:4px 0 0}
+.ph{display:flex;align-items:center;gap:6px}
+.pat details{margin-top:4px;font-size:.85rem}
+.pat summary{cursor:pointer;color:var(--muted)}
+.cond{margin:4px 0 0;padding-left:1em;list-style:none}
+.cb{color:var(--ji)} .cx{color:var(--xiong)}
 .fly details{border:1px solid var(--soft);padding:6px 10px;margin-bottom:6px}
 .fly summary{cursor:pointer;font-weight:500}
 .fly ul{margin:6px 0 0;padding-left:1.2em;display:grid;gap:4px}
 .muted{color:var(--muted)}
 .dnote{font-size:.8rem;color:var(--muted);max-width:65ch}
+.yq{max-width:420px} .yq input{width:100%}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{background:transparent;color:var(--ink);border:1.5px solid var(--rule);letter-spacing:.02em;font-weight:500;padding:7px 14px}
+.tab.on{background:var(--ink);color:var(--paper)}
+.act{align-self:start}
+.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--rule);letter-spacing:.02em;font-weight:500}
+button:disabled{opacity:.45;cursor:default}
+.cbtns{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.coins{display:flex;gap:10px;margin:6px 0}
+.coin{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--gold);background:var(--soft);font-weight:700}
+.coin.zi{background:var(--gold);color:var(--ink)} .coin.bei{background:var(--soft);color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.coin.zi,.coin.bei{animation:flip .35s ease-out}@keyframes flip{from{transform:rotateY(90deg)}to{transform:none}}}
+.hgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px;margin:8px 0}
+.hcard{border:1.5px solid var(--rule);padding:10px 12px;display:grid;gap:6px;align-content:start;min-width:0}
+.hcard p{margin:0}
+.hl{font-size:.8rem;color:var(--muted)}
+.hn{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hn b{font-family:var(--display);font-size:1.15rem}
+.sym{font-size:1.4rem;line-height:1}
+.gua{font-size:.88rem}
+.hex{display:grid;gap:5px;width:120px}
+.hexwrap .hex{width:200px}
+.yao{display:flex;gap:10px;height:12px;align-items:center;position:relative}
+.yao i{flex:1;height:100%;background:var(--ink);border-radius:1px}
+.yao.yang i:nth-child(2){display:none}
+.yao.mv i{background:var(--ji)}
+.yao em{position:absolute;right:-18px;font-style:normal;color:var(--ji);font-size:.8rem}
+.yao small{position:absolute;left:calc(100% + 8px);white-space:nowrap;font-size:.75rem;color:var(--muted)}
+.yao.empty i{background:var(--soft)}
+.hexwrap{padding-right:70px;margin:6px 0}
+
 .jump{display:flex;flex-wrap:wrap;gap:6px}
 .jump a{color:var(--ink);text-decoration:none;border:1px solid var(--rule);padding:4px 10px;border-radius:999px;font-size:.88rem}
 .jump a:hover{background:var(--soft)}
@@ -107,6 +143,8 @@ button:hover{filter:brightness(1.08)} :focus-visible{outline:2px solid var(--dom
 .stale{opacity:.25}
 .flash{animation:flash .6s ease-out}
 @keyframes flash{from{background:var(--gold)}to{background:transparent}}
+.solar{color:var(--domain)}
+select:disabled{opacity:.55}
 .note{font-size:.8rem;color:var(--muted);flex-basis:100%}
 .err{color:var(--ji);font-weight:500}
 h2{font-family:var(--display);font-size:1.25rem;margin:0 0 10px;display:flex;gap:12px;align-items:baseline}
@@ -163,13 +201,15 @@ footer{font-size:.8rem;color:var(--muted);max-width:65ch}
     <div class="field"><label for="by">出生日期</label><div class="dsel"><select id="by" aria-label="出生年"></select><select id="bm" aria-label="出生月"></select><select id="bd" aria-label="出生日"></select></div></div>
     <label class="leap" id="leapwrap" hidden><input type="checkbox" id="leap"> 闰月</label>
     <div class="field"><label for="hour">出生时辰</label><select id="hour"></select></div>
+    <div class="field"><label for="btime">准确时间（选填）</label><input id="btime" type="time"></div>
+    <div class="field"><label for="place">出生地（真太阳时）</label><select id="place"><option value="">不校正，按钟表时间</option></select></div>
     <div class="field"><label for="year">流年</label><select id="year"></select></div>
     <button type="submit">排盘</button>
     <div class="note" id="msg">示例资料：MIKE 1982年7月19日 晚上7点（戌时）。更改任何资料，结果会自动更新。</div>
   </form>
 
   <nav class="jump" aria-label="跳到">
-    <a href="#s-chart">命盘</a><a href="#s-year">流年</a><a href="#deep">深度解读</a><a href="#s-bazi">八字</a><a href="#s-ts">太岁</a><a href="#s-zr">择日</a><a href="#s-star">星座</a><a href="#s-lp">灵数</a>
+    <a href="#s-chart">命盘</a><a href="#s-year">流年</a><a href="#deep">深度解读</a><a href="#s-bazi">八字</a><a href="#s-ts">太岁</a><a href="#s-zr">择日</a><a href="#s-star">星座</a><a href="#s-lp">灵数</a><a href="#s-yi">易经</a>
   </nav>
 
   <section id="s-chart">
@@ -228,11 +268,38 @@ footer{font-size:.8rem;color:var(--muted);max-width:65ch}
     <div id="lp"></div>
   </section>
 
+  <section class="deep" id="s-yi">
+    <h2>易经 <small>本命卦 · 梅花易数 · 摇钱起卦</small></h2>
+    <h3>本命卦 <small class="muted">按出生的年、月、日、时起卦</small></h3>
+    <div id="yiNatal"></div>
+    <h3>问事起卦</h3>
+    <div class="field yq"><label for="yiq">想问的事（选填）</label><input id="yiq" placeholder="例如：这份工作要不要接？"></div>
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab on" id="tabMh" role="tab" aria-selected="true">梅花易数 · 按现在时间</button>
+      <button type="button" class="tab" id="tabCoin" role="tab" aria-selected="false">三钱摇卦</button>
+    </div>
+    <div id="paneMh">
+      <p class="dnote">心里专注想着要问的事，再按起卦。梅花易数用「现在」的年、月、日、时起卦，同一个时辰内问同一件事会得到同一卦。</p>
+      <button type="button" class="act" id="mhGo">起卦</button>
+      <div id="mhOut"></div>
+    </div>
+    <div id="paneCoin" hidden>
+      <p class="dnote">心里想着要问的事，按「摇一次」六次，由下往上排出六爻。三枚铜钱：字面算 3，背面算 2。</p>
+      <div class="coins" id="coins" aria-live="polite"><span class="coin">？</span><span class="coin">？</span><span class="coin">？</span></div>
+      <div class="cbtns"><button type="button" class="act" id="coinGo">摇一次（0/6）</button><button type="button" class="ghost" id="coinAll">一次摇完</button><button type="button" class="ghost" id="coinReset">重来</button></div>
+      <div class="hexwrap"><div class="hex" id="coinHex"></div></div>
+      <div id="coinOut"></div>
+    </div>
+  </section>
+
   <footer>排盘由开源库 iztro 计算，农历换算用 lunar-javascript。宫位解读与吉凶规则写在页面脚本最上方的资料库，可替换成师傅的版本。仅供参考娱乐。</footer>
 </div>
 
 <script src="lib/iztro.min.js"></script>
 <script src="lib/lunar.js"></script>
+<script src="solartime.js"></script>
+<script src="iching-data.js"></script>
+<script src="iching.js"></script>
 <script src="core.js"></script>
 <script src="deep.js"></script>
 <script src="lib/astronomy.browser.min.js"></script>
@@ -267,7 +334,8 @@ function fillMD(){
 }
 fillMD();
 $('by').value = 1982; $('bm').value = 7; $('bd').value = 19; $('year').value = THIS_YEAR;
-const FIELDS = ['name','gender','cal','by','bm','bd','leap','hour','year'];
+for(const [g, arr] of SOLARTIME.PLACES){ const og = document.createElement('optgroup'); og.label = g; for(const [n] of arr){ const o = document.createElement('option'); o.value = n; o.textContent = n; og.appendChild(o); } $('place').appendChild(og); }
+const FIELDS = ['name','gender','cal','by','bm','bd','leap','hour','btime','place','year'];
 const getV = k => $(k).type === 'checkbox' ? $(k).checked : $(k).value;
 try { const saved = JSON.parse(localStorage.getItem('zw-last2') || 'null');
   if(saved){
@@ -290,23 +358,42 @@ function render(){
   const lunar = $('cal').value === 'lunar';
   const y = +$('by').value, m = +$('bm').value, d = +$('bd').value;
   const p2 = n => String(n).padStart(2, '0');
-  const date = `${y}-${p2(m)}-${p2(d)}`;
-  const ti = +hourSel.value;
+  let date = `${y}-${p2(m)}-${p2(d)}`;
+  let ti = +hourSel.value, useLunar = lunar, solarNote = '';
+  const bt = $('btime').value, place = $('place').value;
+  hourSel.disabled = !!bt;
+  if(bt){
+    // 有准确时间：先换成阳历日期，再按出生地做真太阳时校正，自动定时辰
+    let sy0 = y, sm0 = m, sd0 = d;
+    if(lunar){ try { const so = Lunar.fromYmd(y, $('leap').checked ? -m : m, d).getSolar(); sy0 = so.getYear(); sm0 = so.getMonth(); sd0 = so.getDay(); } catch(e){ msg.innerHTML = '<span class="err">这个农历日期不存在，请检查。</span>'; return false; } }
+    const [hh, mm] = bt.split(':').map(Number);
+    const st = SOLARTIME.compute(sy0, sm0, sd0, hh, mm, place);
+    ti = st.ti; hourSel.value = ti; useLunar = false;
+    date = `${st.y}-${p2(st.m)}-${p2(st.d)}`;
+    if(st.corrected){
+      const parts = [`真太阳时 ${st.hm}（${st.place}，钟表时间修正 ${st.total > 0 ? '+' : ''}${st.total} 分钟）→ ${st.shi}时`];
+      if(st.shift) parts.push(`日期变成 ${st.m}月${st.d}日`);
+      if(st.ti !== st.clockTi) parts.push(`按钟表时间原本是${SOLARTIME.SHI[st.clockTi]}时`);
+      if(st.zone !== 480) parts.push(`当年当地时区是 UTC+${st.zone / 60}`);
+      if(st.cnDst) parts.push('注意：当天中国实行夏令时，若填的是当年钟表读数，请先减 1 小时');
+      solarNote = parts.join('；');
+    } else solarNote = `按钟表时间 ${bt} → ${st.shi}时。选择出生地可以做真太阳时校正。`;
+  } else if(place) solarNote = '填写准确出生时间，才能做真太阳时校正。';
   const year = +document.getElementById('year').value;
   if(!lunar){ const t = new Date(y, m - 1, d); if(t.getMonth() !== m - 1){ msg.innerHTML = `<span class="err">${y}年${m}月没有${d}日，请重新选择日期。</span>`; return false; } }
   try { localStorage.setItem('zw-last2', JSON.stringify(Object.fromEntries(FIELDS.map(k => [k, getV(k)])))); } catch(e){}
   let a;
-  const ckey = [lunar, date, ti, gender, $('leap').checked].join('|');
+  const ckey = [useLunar, date, ti, gender, $('leap').checked].join('|');
   if(CHART_CACHE.key === ckey) a = CHART_CACHE.a;
   else {
-    try { a = lunar ? iztro.astro.byLunar(date, ti, gender, $('leap').checked, true, 'zh-CN') : iztro.astro.bySolar(date, ti, gender, true, 'zh-CN'); }
+    try { a = useLunar ? iztro.astro.byLunar(date, ti, gender, $('leap').checked, true, 'zh-CN') : iztro.astro.bySolar(date, ti, gender, true, 'zh-CN'); }
     catch(e){ a = null; }
     if(a) CHART_CACHE = {key: ckey, a};
   }
   if(a && a.palaces) applySchool(a);
   if(!a || !a.palaces || a.palaces.length !== 12){ msg.innerHTML = '<span class="err">这个日期无法排盘，请检查日期（农历小月没有三十，或该年没有这个闰月）。</span>'; return false; }
   const BZ = trueBazi(a, ti);
-  msg.textContent = lunar ? `阳历 ${a.solarDate} · 八字 ${BZ}` : `农历 ${a.lunarDate} · 八字 ${BZ}`;
+  msg.innerHTML = esc(lunar ? `阳历 ${a.solarDate} · 八字 ${BZ}` : `农历 ${a.lunarDate} · 八字 ${BZ}`) + (solarNote ? `<br><span class="solar">${esc(solarNote)}</span>` : '');
   const sy = lunar ? `农历${y}年` : `${y}年`, smd = lunar ? `${$('leap').checked ? '闰' : ''}${LUNAR_M[m - 1]}${LUNAR_D[d - 1]}` : `${m}月${d}日`;
   document.getElementById('sub').textContent = `${a.fiveElementsClass} · 命主${a.soul} · 身主${a.body}`;
 
@@ -353,6 +440,7 @@ function renderDeep(a, year, ti, bad){
   const r = DEEP.year(a, Lunar, year, ti, bad);
   $('dverdict').textContent = `${year} ${r.yearGZ}年 · ${r.verdict}`;
   renderMore(a, year, ti, r.avg);
+  renderNatalGua(a, ti);
   $('dareas').innerHTML = r.areas.map(x => `<div class="area">
       <div class="ah"><b>${esc(x.label)}</b><span class="chip2 ${GCLS(x.grade)}">${esc(x.grade)}</span><span class="num">${x.score}</span></div>
       <div class="bar"><i class="${GCLS(x.grade)}" style="width:${x.score}%"></i></div>
@@ -364,7 +452,10 @@ function renderDeep(a, year, ti, bad){
       <span class="bar"><i class="${GCLS(x.grade)}" style="width:${x.score}%"></i></span><span class="chip2 ${GCLS(x.grade)}">${esc(x.grade)}</span>
       <span class="dw">${esc(x.words.join('、'))}${x.current ? ' · 目前' : ''}</span></div>`).join('');
   const pats = DEEP.patterns(a);
-  $('dpats').innerHTML = pats.length ? pats.map(p => `<div class="pat k-${p.kind}"><b>${esc(p.name)}</b><span class="pk">${p.kind === '吉' ? '吉格' : p.kind === '凶' ? '凶格' : '变格'}${p.broken ? ' · 有破，力量减弱' : ''}</span><p>${esc(p.meaning)}</p></div>`).join('') : '<p class="muted">没有明显的特殊格局，以各宫星曜为主。</p>';
+  const LV = {上吉:'g5', 吉:'g4', 平:'g3', 注意:'g2'};
+  $('dpats').innerHTML = pats.length ? pats.map(p => `<div class="pat k-${p.kind}"><div class="ph"><b>${esc(p.name)}</b><span class="chip2 ${LV[p.level]}">${esc(p.level)}</span></div><p>${esc(p.meaning)}</p>
+    <details><summary>成格条件${p.bonus.length ? ' · 加分 ' + p.bonus.length : ''}${p.breaking.length ? ' · 破格 ' + p.breaking.length : ''}</summary>
+    <ul class="cond">${p.need.map(t => `<li>✓ ${esc(t)}</li>`).join('')}${p.bonus.map(t => `<li class="cb">＋ ${esc(t)}</li>`).join('')}${p.breaking.map(t => `<li class="cx">✗ ${esc(t)}</li>`).join('')}</ul><p class="why">出处：${esc(p.source)}</p></details></div>`).join('') : '<p class="muted">没有明显的特殊格局，以各宫星曜为主。</p>';
   const f = DEEP.flying(a);
   const ul = arr => `<ul>${arr.map(x => `<li>${esc(x.text)}</li>`).join('')}</ul>`;
   $('dfly').innerHTML = `<details open><summary>生年四化（一生的底色）</summary>${ul(f.birth)}</details>
@@ -426,6 +517,70 @@ function renderZeri(){
   $('zr').innerHTML = `<div class="zrg">${MORE.zeri(MORE_CTX.year, lm, MORE_CTX.sx).map(a => `<div class="zra"><b>${esc(a.label)}</b>${a.days.length ? a.days.map(d => `<span class="zd">${esc(d.date)}（${esc(d.week)}）<small>${esc(d.lunar)}</small></span>`).join('') : '<span class="muted">本月没有合适的日子</span>'}</div>`).join('')}</div>`;
 }
 $('zrmonth').addEventListener('change', e => { e.stopPropagation(); $('zrmonth').dataset.touched = '1'; renderZeri(); });
+/* ---------- 易经 ---------- */
+const YLV = {大吉:'g5', 吉:'g4', 平:'g3', 小凶:'g2', 凶:'g1'};
+function hexLines(lines, moving){
+  moving = moving || [];
+  let h = '';
+  for(let i = 5; i >= 0; i--) h += `<div class="yao ${lines[i] ? 'yang' : 'yin'}${moving.includes(i) ? ' mv' : ''}"><i></i><i></i>${moving.includes(i) ? `<em>${lines[i] ? '○' : '×'}</em>` : ''}</div>`;
+  return `<div class="hex">${h}</div>`;
+}
+function hexCard(h, label, moving){
+  return `<div class="hcard"><div class="hl">${esc(label)}</div>${hexLines(h.lines, moving)}
+    <div class="hn"><b>${esc(h.full)}</b><span class="sym">${esc(h.s)}</span><span class="chip2 ${YLV[h.l]}">${esc(h.l)}</span></div>
+    <p>${esc(h.t)}</p><p class="gua">卦辞：${esc(h.g)}</p><p class="why">大象：${esc(h.x)}</p></div>`;
+}
+function renderNatalGua(a, ti){
+  const [sy, sm, sd] = String(a.solarDate).split('-').map(Number);
+  const hour = ti === 0 ? 0 : ti === 12 ? 23 : ti * 2;
+  const r = ICHING.natal(Solar.fromYmdHms(sy, sm, sd, hour, 0, 0).getLunar());
+  $('yiNatal').innerHTML = `<p class="why">${esc(r.when)}：上卦 ${r.calc.yz}+${r.calc.lm}+${r.calc.ld} 除 8 余 ${r.calc.upN}（${r.ben.up.n}），下卦再加时 ${r.calc.hz} 余 ${r.calc.loN}（${r.ben.lo.n}），第 ${r.dong} 爻动</p>
+    <div class="hgrid">${hexCard(r.ben, '本卦 · 一生基调', [r.dong - 1])}${hexCard(r.hu, '互卦 · 中年过程')}${hexCard(r.bian, '变卦 · 晚年走向')}</div>
+    <p><b>人生课题（动爻）</b>：${esc(r.line)}</p>
+    <p><b>体用</b>：体卦${esc(r.ti.n)}（${esc(r.ti.wx)}），用卦${esc(r.yong.n)}（${esc(r.yong.wx)}）。${esc(r.r.t)}；到了晚年变成「${esc(r.rBian.k)}」。</p>`;
+}
+function setTab(coin){
+  $('tabMh').classList.toggle('on', !coin); $('tabCoin').classList.toggle('on', coin);
+  $('tabMh').setAttribute('aria-selected', String(!coin)); $('tabCoin').setAttribute('aria-selected', String(coin));
+  $('paneMh').hidden = coin; $('paneCoin').hidden = !coin;
+}
+$('tabMh').addEventListener('click', () => setTab(false));
+$('tabCoin').addEventListener('click', () => setTab(true));
+const qText = () => { const q = $('yiq').value.trim(); return q ? `所问：${q}` : '所问：（心中所想之事）'; };
+$('mhGo').addEventListener('click', () => {
+  const r = ICHING.meihuaByTime(Lunar.fromDate(new Date()));
+  const final = r.rBian.lv === '大吉' || r.rBian.lv === '吉' ? '结果偏好' : r.rBian.lv === '凶' ? '结果偏差' : '结果有得有失';
+  $('mhOut').innerHTML = `<p class="why">${esc(qText())} · 起卦时间 ${esc(r.when)} · 第 ${r.dong} 爻动</p>
+    <div class="hgrid">${hexCard(r.ben, '本卦 · 现在', [r.dong - 1])}${hexCard(r.hu, '互卦 · 过程')}${hexCard(r.bian, '变卦 · 结果')}</div>
+    <p><b>动爻</b>：${esc(r.line)}</p>
+    <p><b>体用判断</b>：体卦${esc(r.ti.n)}（${esc(r.ti.wx)}）代表你，用卦${esc(r.yong.n)}（${esc(r.yong.wx)}）代表所问的事。<span class="chip2 ${YLV[r.r.lv]}">${esc(r.r.lv)}</span> ${esc(r.r.t)}。变卦后是「${esc(r.rBian.k)}」，${final}。</p>`;
+});
+let TOSSES = [];
+function drawCoins(t){ $('coins').innerHTML = (t ? t.coins : [null, null, null]).map(c => `<span class="coin${c === null ? '' : c ? ' zi' : ' bei'}">${c === null ? '？' : c ? '字' : '背'}</span>`).join(''); }
+function drawCoinState(){
+  const done = TOSSES.length;
+  $('coinGo').textContent = done >= 6 ? '已摇完' : `摇一次（${done}/6）`;
+  $('coinGo').disabled = done >= 6; $('coinAll').disabled = done >= 6;
+  const lines = TOSSES.map(v => (v === 7 || v === 9) ? 1 : 0);
+  const NAME = {6:'老阴 ×', 7:'少阳', 8:'少阴', 9:'老阳 ○'};
+  let h = '';
+  for(let i = 5; i >= 0; i--){
+    if(i >= done){ h += '<div class="yao empty"><i></i></div>'; continue; }
+    const v = TOSSES[i], mv = v === 6 || v === 9;
+    h += `<div class="yao ${lines[i] ? 'yang' : 'yin'}${mv ? ' mv' : ''}"><i></i><i></i><small>${NAME[v]}</small></div>`;
+  }
+  $('coinHex').innerHTML = h;
+  if(done < 6){ $('coinOut').innerHTML = ''; return; }
+  const r = ICHING.fromTosses(TOSSES);
+  $('coinOut').innerHTML = `<p class="why">${esc(qText())} · ${r.moving.length ? `变爻 ${r.moving.length} 个` : '没有变爻'}</p>
+    <div class="hgrid">${hexCard(r.ben, '本卦 · 现在', r.moving)}${r.moving.length ? hexCard(r.bian, '变卦 · 结果') : ''}</div>
+    <h3>该看哪一句</h3><ul class="dnotes">${r.focus.map(f => `<li><span class="tag">${esc(f.h.n)}</span><span><b>${esc(f.t)}</b><br><span class="why">${esc(f.why)}</span></span></li>`).join('')}</ul>`;
+}
+function toss(){ if(TOSSES.length >= 6) return; const t = ICHING.tossOnce(); TOSSES.push(t.v); drawCoins(t); drawCoinState(); }
+$('coinGo').addEventListener('click', toss);
+$('coinAll').addEventListener('click', () => { while(TOSSES.length < 6) toss(); });
+$('coinReset').addEventListener('click', () => { TOSSES = []; drawCoins(null); drawCoinState(); });
+drawCoinState();
 function update(){ const ok = render() !== false; for(const id of ['board','yboard']){ const el = $(id); el.classList.toggle('stale', !ok); if(!ok) continue; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); } }
 $('f').addEventListener('submit', e => { e.preventDefault(); update(); $('board').scrollIntoView({behavior: 'smooth', block: 'start'}); });
 $('cal').addEventListener('change', fillMD);

@@ -25,3 +25,11 @@ sw.js                 离线缓存
 manifest.webmanifest  App 名称、图标、颜色
 icons/                App 图标
 lib/                  排盘库 iztro、农历库 lunar-javascript（均为 MIT 授权）
+
+## 第三方资料与授权
+- 紫微排盘：iztro（MIT）
+- 农历、八字、黄历：lunar-javascript（MIT）
+- 天文位置（星座）：astronomy-engine（MIT）
+- 格局三层判断、真太阳时公式、岁前十二神：参考 renhuai123/ziwei-doushu（代码 MIT），说明文字为白话改写，未使用其中倪海厦原话（CC BY-NC-SA）
+- 周易原文：freizl/yijing（MIT，周易原文属公版）
+授权文件在 lib/ 目录。
