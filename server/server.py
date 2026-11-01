@@ -22,6 +22,7 @@ from urllib.parse import parse_qs, urlparse
 
 DB_PATH = os.environ.get('DB_PATH', 'ziwei13.db')
 PORT = int(os.environ.get('PORT', '8787'))
+HOST = os.environ.get('HOST', '0.0.0.0')
 TOKEN = os.environ.get('API_TOKEN', '')
 ORIGINS = [o.strip() for o in os.environ.get('ALLOW_ORIGIN', 'https://ziwei-app.pages.dev').split(',')]
 DIMS = ['overview', 'personality', 'love', 'career', 'wealth', 'health', 'family',
@@ -105,6 +106,7 @@ class H(BaseHTTPRequestHandler):
         self.send_response(204)
         self.cors()
         self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        self.send_header('Access-Control-Allow-Private-Network', 'true')   # 浏览器访问本机服务器时需要
         self.end_headers()
 
     def do_GET(self):
@@ -137,5 +139,5 @@ if __name__ == '__main__':
     if not os.path.exists(DB_PATH):
         raise SystemExit(f'找不到数据库 {DB_PATH}，请先运行 build_db.py')
     META.update(dict(conn().execute('SELECT k, v FROM meta').fetchall()))
-    print(f'13 维解读服务器启动：http://0.0.0.0:{PORT}  资料 {META.get("charts")} 张盘  {META.get("years")}', flush=True)
-    ThreadingHTTPServer(('0.0.0.0', PORT), H).serve_forever()
+    print(f'13 维解读服务器启动：http://{HOST}:{PORT}  资料 {META.get("charts")} 张盘  {META.get("years")}', flush=True)
+    ThreadingHTTPServer((HOST, PORT), H).serve_forever()
