@@ -258,20 +258,20 @@ footer{font-size:.8rem;color:var(--muted);max-width:65ch}
 
   <section class="deep" id="s-13d">
     <h2>13 维深度解读 <small>674,976 张命盘资料库 · 按你的生日原文调取</small></h2>
+    <p class="d13st" id="d13st"></p>
     <details class="srv" id="srvbox">
-      <summary id="srvsum">服务器设置</summary>
+      <summary id="srvsum">进阶：改用自己的服务器（选填，一般不用）</summary>
       <div class="srvrow">
         <div class="field"><label for="srvurl">服务器网址</label><input id="srvurl" type="url" placeholder="https://你的服务器网址" autocomplete="off"></div>
         <div class="field"><label for="srvtoken">密码</label><input id="srvtoken" type="password" autocomplete="off"></div>
         <button type="button" class="ghost" id="srvtest">连接并读取</button>
       </div>
-      <p class="dnote">网址和密码只存在这部手机或电脑上。服务器怎么架设见 GitHub 仓库里的 server/README.md。</p>
+      <p class="dnote">留空就用 App 自带的资料（默认）。填了网址就改从你的服务器读取；网址和密码只存在这部手机或电脑上，架设方法见 GitHub 仓库里的 server/README.md。</p>
     </details>
-    <p class="d13st" id="d13st"></p>
     <div class="d13one" id="d13one"></div>
     <div class="tabs d13tabs" id="d13tabs" role="tablist"></div>
     <article class="md" id="d13body"></article>
-    <p class="dnote">本项目使用了紫微斗数开源解读数据集 v4.0（674,976 张命盘 × 13 维），来源：github.com/Renhuai123/ziwei-doushu，作者：王多鱼AI，CC BY 4.0。内文引用的倪海厦《天纪》原话限非商业用途。资料按钟表时辰排盘，未做真太阳时校正；本 App 会用你校正后的时辰去查。</p>
+    <p class="dnote">本项目使用了紫微斗数开源解读数据集 v4.0（674,976 张命盘 × 13 维），来源：github.com/Renhuai123/ziwei-doushu，作者：王多鱼AI，CC BY 4.0。内文引用的倪海厦《天纪》原话限非商业用途。资料按钟表时辰排盘，未做真太阳时校正；本 App 会用你校正后的时辰去查。资料随 App 放在网站上，按月份分档，只下载你生日那个月份的档案。</p>
   </section>
 
   <section class="deep" id="s-bazi">
@@ -333,6 +333,7 @@ footer{font-size:.8rem;color:var(--muted);max-width:65ch}
 <script src="solartime.js"></script>
 <script src="iching-data.js"></script>
 <script src="iching.js"></script>
+<script src="lib/fzstd.js"></script>
 <script src="core.js"></script>
 <script src="deep.js"></script>
 <script src="lib/astronomy.browser.min.js"></script>
@@ -622,7 +623,26 @@ let D13_TAB = 'overview', D13_CUR = null, D13_REQ = 0;
 const srvGet = k => { try { return localStorage.getItem(k) || ''; } catch(e){ return ''; } };
 const srvSet = (k, v) => { try { localStorage.setItem(k, v); } catch(e){} };
 $('srvurl').value = srvGet('zw-srv'); $('srvtoken').value = srvGet('zw-tok');
-if(!$('srvurl').value) $('srvbox').open = true;
+// 自带资料：data13/年/月.zst，第一行是索引，之后每张盘一行
+const SHARDS = new Map(), TD = new TextDecoder();
+async function staticChart(q, key){
+  const [y, m] = q.date.split('-'), ym = `${y}/${m}`;
+  let sh = SHARDS.get(ym);
+  if(!sh){
+    const res = await fetch(`data13/${ym}.zst`);
+    if(!res.ok) throw new Error(`读取 ${y} 年 ${+m} 月资料失败（${res.status}）`);
+    const buf = new Uint8Array(await res.arrayBuffer());
+    await new Promise(r => setTimeout(r, 30));          // 先让「正在解压」显示出来
+    const out = fzstd.decompress(buf), nl = out.indexOf(10);
+    sh = {out, nl, idx: JSON.parse(TD.decode(out.subarray(0, nl))).idx};
+    SHARDS.set(ym, sh);
+    if(SHARDS.size > 2) SHARDS.delete(SHARDS.keys().next().value);
+  }
+  const e = sh.idx[key];
+  if(!e) throw new Error('资料里找不到这张盘');
+  const rec = JSON.parse(TD.decode(sh.out.subarray(sh.nl + 1 + e[0], sh.nl + 1 + e[0] + e[1])));
+  return {k: key, ms: rec.ms, dims: rec.c};
+}
 function mdRender(t){
   const inline = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/「(.+?)」/g, '「<span class="q">$1</span>」');
   const out = []; let list = [];
@@ -661,21 +681,23 @@ async function loadD13(a, ti){
   const SHI = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
   const label = `${q.date} ${SHI[q.h]}时 ${q.g === 'male' ? '男' : '女'}`;
   const st = $('d13st');
-  if(!base){ st.innerHTML = '还没设定服务器。在上面填入你的服务器网址和密码，就能调出这张命盘的 13 维完整解读（每张约 3 万字）。'; $('d13one').innerHTML = ''; $('d13tabs').innerHTML = ''; $('d13body').innerHTML = ''; return; }
-  if(q.y < 1950 || q.y > 2026){ st.innerHTML = `<span class="err">资料库只有 1950–2026 年出生的命盘，这张盘（${esc(label)}）查不到。</span>`; return; }
+  if(q.y < 1950 || q.y > 2026){ st.innerHTML = `<span class="err">资料库只有 1950–2026 年出生的命盘，这张盘（${esc(label)}）查不到。</span>`; $('d13one').innerHTML = ''; $('d13tabs').innerHTML = ''; $('d13body').innerHTML = ''; return; }
   const req = ++D13_REQ;
   let r = D13_CACHE[key];
   if(!r){
-    st.textContent = `正在调取 ${label} 的 13 维解读…`;
+    st.textContent = base ? `正在从你的服务器调取 ${label} 的 13 维解读…` : `正在读取 ${label} 的 13 维解读（下载约 0.5 MB，第一次稍等几秒）…`;
     try {
-      const res = await fetch(`${base}/api/13d?date=${q.date}&h=${q.h}&g=${q.g}`, {headers: tok ? {'X-Token': tok} : {}});
-      const j = await res.json().catch(() => ({}));
-      if(!res.ok) throw new Error(j.error || `服务器回应 ${res.status}`);
-      r = D13_CACHE[key] = j;
+      if(base){
+        const res = await fetch(`${base}/api/13d?date=${q.date}&h=${q.h}&g=${q.g}`, {headers: tok ? {'X-Token': tok} : {}});
+        const j = await res.json().catch(() => ({}));
+        if(!res.ok) throw new Error(j.error || `服务器回应 ${res.status}`);
+        r = j;
+      } else r = await staticChart(q, key);
+      D13_CACHE[key] = r;
     } catch(e){
       if(req !== D13_REQ) return;
-      st.innerHTML = `<span class="err">调取失败：${esc(e.message === 'Failed to fetch' ? '连不上服务器（请检查网址是否 https、服务器是否开着）' : e.message)}</span>`;
-      $('srvbox').open = true; return;
+      st.innerHTML = `<span class="err">读取失败：${esc(e.message === 'Failed to fetch' ? (base ? '连不上你的服务器（请检查网址是否 https、服务器是否开着）' : '网络连不上，请稍后再试') : e.message)}</span>`;
+      if(base) $('srvbox').open = true; return;
     }
   }
   if(req !== D13_REQ) return;
@@ -684,7 +706,7 @@ async function loadD13(a, ti){
   st.innerHTML = `已调取 ${esc(label)}：命宫主星 ${esc(r.ms || '无主星')}${same ? '，和本 App 的命盘一致 ✓' : `<span class="err">，和本 App 的命盘（${esc(ours.join('、') || '无主星')}）不同，两边排盘口径有差异，请参考使用</span>`}`;
   $('d13one').innerHTML = `<h3>13 维一句话</h3><ul class="dnotes">${D13.map(([k, n]) => { const o = oneLine(r.dims[k] || ''); return o ? `<li><span class="tag">${n}</span>${esc(o)}</li>` : ''; }).join('')}</ul>`;
   D13_CUR = r; drawD13();
-  $('srvsum').textContent = `服务器设置（已连接）`;
+  $('srvsum').textContent = base ? '进阶：使用自己的服务器（已连接）' : '进阶：改用自己的服务器（选填，一般不用）';
 }
 $('srvtest').addEventListener('click', () => {
   srvSet('zw-srv', $('srvurl').value.trim()); srvSet('zw-tok', $('srvtoken').value.trim());
